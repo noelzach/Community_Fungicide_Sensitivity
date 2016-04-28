@@ -17,7 +17,7 @@ op <- par(oma=c(5,7,1,1))
 
 
 ```{r, echo = FALSE}
-agar.dil <- data.frame(read.csv("/Users/zacharynoel/Google\ Drive/Michigan\ State/FungicideTesting/AssayDevelopment/agardilutions.csv", na.strings = "na"))
+agar.dil <- data.frame(read.csv("agardilutions.csv", na.strings = "na"))
 ```
 
 ###Assay Development
