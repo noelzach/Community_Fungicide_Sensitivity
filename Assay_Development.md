@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-04-28 12:24:38 EDT"
+    ## [1] "2016-04-28 12:27:00 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -97,14 +97,7 @@ Looks like the mean of everthing was significant. This means we a significant ef
 ``` r
 library(ggplot2)
 library(Rmisc)
-```
-
-    ## Loading required package: lattice
-
-    ## Loading required package: plyr
-
-``` r
-ggplot(agardil, aes(x = agar.vol, y = EC50, color = factor(is))) +
+p1 <- ggplot(agardil, aes(x = agar.vol, y = EC50, color = factor(is))) +
   stat_summary(fun.y = mean, geom = "point") + 
   stat_summary(fun.y = mean, geom = "line") +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 1.5) +
@@ -120,6 +113,7 @@ ggplot(agardil, aes(x = agar.vol, y = EC50, color = factor(is))) +
         legend.text = element_text(size  = 30, face = "bold.italic")) +
   labs(list(x = "Agar Volume (μl)",  
             y = expression(bold("Mean EC"[50] ~"(μg ml"^-1~")"))))
+print(p1)
 ```
 
 ![](Assay_Development_files/figure-markdown_github/unnamed-chunk-5-1.png)<!-- -->
