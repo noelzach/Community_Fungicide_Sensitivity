@@ -1,3 +1,3 @@
-# Community Fungicide Sensitivity
+# Assay Development
 
-This is a project that allows for the analysis of dose response data for oomycete pathogens on soybean to common fungicides applied as seed treatments. 
+For this section of the project we are looking at data from an experiment from four isolates representing four species of Pythium, where we added 25, 50, 75, and 100 μl of macerated agar to 200 μl of half-strength V8B. There was three biological replications per plate and two technical replications, repeated over time. A four-parameter log-logistic model was generated from the percent relative growth for each macerated agar treatment-technical replicate. The mean absolute EC50 was then compared first in a two-way ANOVA with macerated agar, isolate and the interaction macerated agar isolate treated as fixed effects. Main effects of agar volume were then analyzed within each isolate using a one-way ANOVA and Tukey HSD test. 
