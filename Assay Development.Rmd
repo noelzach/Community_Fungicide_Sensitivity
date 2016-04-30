@@ -2,7 +2,9 @@
 title: "Assay Development"
 author: "Zachary Noel"
 date: "April 28, 2016"
-output: html_document
+output: 
+  md_document:
+    variant: markdown_github
 ---
 
 ```{r}
@@ -87,27 +89,48 @@ agardil.aov <- lm(EC50 ~ agar.vol + is + is:agar.vol, data = agardil)
 anova(agardil.aov)
 ```
 
-Looks like the mean of everthing was significant. This means we a significant effect of agar volume within each isolate. This means we should look at just the main effects (agar volume) within isolate. 
+Looks like the mean of everthing was significant. This means we have a significant effect of agar volume within each isolate. This means we should look at just the main effects (agar volume) within isolate. 
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
+library(agricolae)
+agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "AR_262.S.1.6.A",])
+anova(agardil.is1)
+HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+
+agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "IASO_1-16.3rt",])
+anova(agardil.is1)
+HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+
+agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "ILSO_5-42c",])
+anova(agardil.is1)
+HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+
+agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "NESO_2-13",])
+anova(agardil.is1)
+HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+```
+
+
+```{r, warning=FALSE, message=FALSE}
 library(ggplot2)
 library(Rmisc)
-ggplot(agardil, aes(x = agar.vol, y = EC50, color = factor(is))) +
+p1 <- ggplot(agardil, aes(x = agar.vol, y = EC50, color = factor(is))) +
   stat_summary(fun.y = mean, geom = "point") + 
   stat_summary(fun.y = mean, geom = "line") +
-  #stat_summary(fun.data = mean_se, geom = "errorbar") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", width = 1.5) +
   theme_bw() +
-  guides(fill = guide_legend(title = "Isolate", title.position = "top")) +
-  theme(axis.text.x = element_text(size = 30, face = "bold.italic", 
+  theme(axis.text.x = element_text(size = 10, face = "bold", 
                                    angle = 90, hjust = 1, vjust = 0.5),
         axis.ticks = element_line(colour = 'black', size = 2, linetype = 'dashed'),
-        axis.text.y = element_text(size = 30, face = "bold"),
-        axis.title.x = element_text(size = 40, face = "bold"),
-        axis.title.y = element_text(size = 40, face = "bold"),
-        legend.title = element_text(size  = 40, face = "bold"),
-        legend.text = element_text(size  = 30, face = "bold.italic")) +
+        axis.text.y = element_text(size = 10, face = "bold"),
+        axis.title.x = element_text(size = 20, face = "bold"),
+        axis.title.y = element_text(size = 20, face = "bold"),
+        legend.title = element_text(size  = 20, face = "bold"),
+        legend.text = element_text(size  = 20, face = "bold.italic")) +
+    guides(fill = guide_legend(title = "Isolate", title.position = "top")) +
   labs(list(x = "Agar Volume (μl)",  
             y = expression(bold("Mean EC"[50] ~"(μg ml"^-1~")"))))
+print(p1)
 ```
 
 
