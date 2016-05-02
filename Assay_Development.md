@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-05-02 08:48:02 EDT"
+    ## [1] "2016-05-02 08:49:54 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -57,16 +57,6 @@ SI(agardil.drc, c(50, 50), ci = "delta")
 agar.vol <- unique(agar.dil$agarvol[agar.dil$is == nm[[i]]])
 agardil_i <- data.frame(rep(nm[[i]], 4), c(agar.vol), rep(t, 4), c(abs.ec50))
 agardil <- rbind.data.frame(agardil, agardil_i)
-#species <- as.character(unique(agar.dil$species[agar.dil$is == nm[[i]]]))
-#plot(agardil.drc, col = T, lty = 1, 
- #    ylim = c(0, 100), 
-  #   ylab = expression(bold("% Growth, relative to control")), 
-   #  xlab = expression(bold("Mefenoxam concentration (μg ml"^-1~")")))
-#title(main = paste(species))
-#plot(unique(agar.dil$agarvol), abs.ec50, 
- #    xlim = c(0, 100),
-  #   ylab = expression(bold("Absolute EC"[50] ~ "(μg ml"^-1~")")),
-   #  xlab = expression(bold("Agar Volume (μl)")))
   }
 }
 colnames(agardil) <- c("is", "agar.vol", "trial", "EC50")
