@@ -4,12 +4,10 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-04-29 15:41:38 EDT"
+    ## [1] "2016-05-02 08:48:02 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
-
-op <- par(oma=c(5,7,1,1))
 ```
 
 ### Assay Development
@@ -142,8 +140,32 @@ HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
     ## b     25      0.04494
 
 ``` r
-agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "IASO_1-16.3rt",])
-anova(agardil.is1)
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 25]),3)
+```
+
+    ## [1] 0.001
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 50]),3)
+```
+
+    ## [1] 0.01
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 75]),3)
+```
+
+    ## [1] 0.002
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 100]),3)
+```
+
+    ## [1] 0.002
+
+``` r
+agardil.is2 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "IASO_1-16.3rt",])
+anova(agardil.is2)
 ```
 
     ## Analysis of Variance Table
@@ -154,11 +176,11 @@ anova(agardil.is1)
     ## Residuals  6 0.0031527 0.00052545
 
 ``` r
-HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+HSD.test(agardil.is2, "agar.vol", group = TRUE, console = TRUE)
 ```
 
     ## 
-    ## Study: agardil.is1 ~ "agar.vol"
+    ## Study: agardil.is2 ~ "agar.vol"
     ## 
     ## HSD Test for EC50 
     ## 
@@ -186,8 +208,32 @@ HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
     ## a     25      0.01936
 
 ``` r
-agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "ILSO_5-42c",])
-anova(agardil.is1)
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 25]), 3)
+```
+
+    ## [1] 0.001
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 50]), 3)
+```
+
+    ## [1] 0.007
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 75]), 3)
+```
+
+    ## [1] 0.034
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 100]), 3)
+```
+
+    ## [1] 0.013
+
+``` r
+agardil.is3 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "ILSO_5-42c",])
+anova(agardil.is3)
 ```
 
     ## Analysis of Variance Table
@@ -200,11 +246,11 @@ anova(agardil.is1)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+HSD.test(agardil.is3, "agar.vol", group = TRUE, console = TRUE)
 ```
 
     ## 
-    ## Study: agardil.is1 ~ "agar.vol"
+    ## Study: agardil.is3 ~ "agar.vol"
     ## 
     ## HSD Test for EC50 
     ## 
@@ -232,8 +278,32 @@ HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
     ## c     25      0.01031
 
 ``` r
-agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "NESO_2-13",])
-anova(agardil.is1)
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 25]), 3)
+```
+
+    ## [1] 0.001
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 50]), 3)
+```
+
+    ## [1] 0.002
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 75]), 3)
+```
+
+    ## [1] 0.004
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 100]), 3)
+```
+
+    ## [1] 0.012
+
+``` r
+agardil.is4 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "NESO_2-13",])
+anova(agardil.is4)
 ```
 
     ## Analysis of Variance Table
@@ -246,11 +316,11 @@ anova(agardil.is1)
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+HSD.test(agardil.is4, "agar.vol", group = TRUE, console = TRUE)
 ```
 
     ## 
-    ## Study: agardil.is1 ~ "agar.vol"
+    ## Study: agardil.is4 ~ "agar.vol"
     ## 
     ## HSD Test for EC50 
     ## 
@@ -276,6 +346,30 @@ HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
     ## a     75      0.2059 
     ## b     50      0.1224 
     ## c     25      0.04292
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 25]), 3)
+```
+
+    ## [1] 0.002
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 50]), 3)
+```
+
+    ## [1] 0.021
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 75]), 3)
+```
+
+    ## [1] 0.025
+
+``` r
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 100]), 3)
+```
+
+    ## [1] 0.01
 
 ``` r
 library(ggplot2)
