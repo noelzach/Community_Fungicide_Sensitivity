@@ -1,5 +1,16 @@
-# Assay Development
+# Fungicide sensitivity of oomycete species associated with corn and soybean seedlings
 
-For this section of the project we are looking at data from an experiment from four isolates representing four species of Pythium, where we added 25, 50, 75, and 100 μl of macerated agar to 200 μl of half-strength V8B. There was three biological replications per plate and two technical replications, repeated over time. A four-parameter log-logistic model was generated from the percent relative growth for each macerated agar treatment-technical replicate. The mean absolute EC50 was then compared first in a two-way ANOVA with macerated agar, isolate and the interaction macerated agar isolate treated as fixed effects. Main effects of agar volume were then analyzed within each isolate using a one-way ANOVA and Tukey HSD test. 
+This project is an extension of a project to survey oomycetes associated with soybean seedlings in North America, and can be found here: [Rojas Survey](https://github.com/Chilverslab/Rojas_Survey_Phytopath_2016)
 
-The code is available here: [Assay Development](Assay_Development.md)
+###Data 
+Currently the data associated with this project will not be available in this repository until in its final form. Therefore, the code provided in this repository can be used as a guide for those wishing to perform similar analysis.
+
+###This project can be broken into the following sections
+* [Assay Development](Assay_Development.md)
+* [Assay Validation]()
+* [Assay Evaluation]()
+* [Community Sensitivity]()
+* [Phylogenetics](Phylogenetics.md)
+
+ 
+
