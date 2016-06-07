@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-05-02 08:49:54 EDT"
+    ## [1] "2016-06-07 14:14:16 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -79,6 +79,13 @@ anova(agardil.aov)
     ## Residuals   24 0.007956 0.000331                              
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+par(mfrow = c(2,2))
+plot(agardil.aov)
+```
+
+![](Assay_Development_files/figure-markdown_github/unnamed-chunk-4-1.png)<!-- -->
 
 Looks like the mean of everthing was significant. This means we have a significant effect of agar volume within each isolate. This means we should look at just the main effects (agar volume) within isolate.
 

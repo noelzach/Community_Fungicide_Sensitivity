@@ -13,8 +13,6 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 
 options(scipen = 999) # stops anything from being in scientific notation
-
-op <- par(oma=c(5,7,1,1))
 ```
 
 
@@ -68,16 +66,6 @@ SI(agardil.drc, c(50, 50), ci = "delta")
 agar.vol <- unique(agar.dil$agarvol[agar.dil$is == nm[[i]]])
 agardil_i <- data.frame(rep(nm[[i]], 4), c(agar.vol), rep(t, 4), c(abs.ec50))
 agardil <- rbind.data.frame(agardil, agardil_i)
-#species <- as.character(unique(agar.dil$species[agar.dil$is == nm[[i]]]))
-#plot(agardil.drc, col = T, lty = 1, 
- #    ylim = c(0, 100), 
-  #   ylab = expression(bold("% Growth, relative to control")), 
-   #  xlab = expression(bold("Mefenoxam concentration (μg ml"^-1~")")))
-#title(main = paste(species))
-#plot(unique(agar.dil$agarvol), abs.ec50, 
- #    xlim = c(0, 100),
-  #   ylab = expression(bold("Absolute EC"[50] ~ "(μg ml"^-1~")")),
-   #  xlab = expression(bold("Agar Volume (μl)")))
   }
 }
 colnames(agardil) <- c("is", "agar.vol", "trial", "EC50")
@@ -87,6 +75,8 @@ Two-way ANOVA looking at the effect of isolate and agar volume added per well to
 ```{r}
 agardil.aov <- lm(EC50 ~ agar.vol + is + is:agar.vol, data = agardil)
 anova(agardil.aov)
+par(mfrow = c(2,2))
+plot(agardil.aov)
 ```
 
 Looks like the mean of everthing was significant. This means we have a significant effect of agar volume within each isolate. This means we should look at just the main effects (agar volume) within isolate. 
@@ -96,18 +86,34 @@ library(agricolae)
 agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "AR_262.S.1.6.A",])
 anova(agardil.is1)
 HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 25]),3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 50]),3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 75]),3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 100]),3)
 
-agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "IASO_1-16.3rt",])
-anova(agardil.is1)
-HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+agardil.is2 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "IASO_1-16.3rt",])
+anova(agardil.is2)
+HSD.test(agardil.is2, "agar.vol", group = TRUE, console = TRUE)
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 25]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 50]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 75]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 100]), 3)
 
-agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "ILSO_5-42c",])
-anova(agardil.is1)
-HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+agardil.is3 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "ILSO_5-42c",])
+anova(agardil.is3)
+HSD.test(agardil.is3, "agar.vol", group = TRUE, console = TRUE)
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 25]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 50]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 75]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 100]), 3)
 
-agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "NESO_2-13",])
-anova(agardil.is1)
-HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
+agardil.is4 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "NESO_2-13",])
+anova(agardil.is4)
+HSD.test(agardil.is4, "agar.vol", group = TRUE, console = TRUE)
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 25]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 50]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 75]), 3)
+round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 100]), 3)
 ```
 
 
