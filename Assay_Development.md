@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-06-25 14:17:02 EDT"
+    ## [1] "2016-06-25 14:20:12 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -113,10 +113,10 @@ summary(agardil2)
     ## agar.vol100 -0.278  0.500  0.500
 
 ``` r
-lmerTest::anova(agardil2)
+lmerTest::anova(agardil2, type = 1) # type 1 SS ANOVA table, balanced design all types are the same 
 ```
 
-    ## Analysis of Variance Table of type III  with  Satterthwaite 
+    ## Analysis of Variance Table of type I  with  Satterthwaite 
     ## approximation for degrees of freedom
     ##            Sum Sq  Mean Sq NumDF DenDF F.value      Pr(>F)    
     ## agar.vol 0.053786 0.017929     3    25  16.632 0.000003774 ***
