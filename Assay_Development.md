@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-06-25 13:57:09 EDT"
+    ## [1] "2016-06-25 14:17:02 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -80,7 +80,8 @@ agardil2 <- lmer(EC50 ~ agar.vol + (1|is), data = agardil)
 summary(agardil2)
 ```
 
-    ## Linear mixed model fit by REML ['lmerMod']
+    ## Linear mixed model fit by REML t-tests use Satterthwaite approximations
+    ##   to degrees of freedom [lmerMod]
     ## Formula: EC50 ~ agar.vol + (1 | is)
     ##    Data: agardil
     ## 
@@ -97,17 +98,30 @@ summary(agardil2)
     ## Number of obs: 32, groups:  is, 4
     ## 
     ## Fixed effects:
-    ##             Estimate Std. Error t value
-    ## (Intercept)  0.02938    0.02951   0.996
-    ## agar.vol50   0.04359    0.01642   2.655
-    ## agar.vol75   0.08434    0.01642   5.138
-    ## agar.vol100  0.10761    0.01642   6.555
+    ##             Estimate Std. Error       df t value    Pr(>|t|)    
+    ## (Intercept)  0.02938    0.02951  3.83200   0.996      0.3780    
+    ## agar.vol50   0.04359    0.01642 25.00000   2.655      0.0136 *  
+    ## agar.vol75   0.08434    0.01642 25.00000   5.138 0.000026110 ***
+    ## agar.vol100  0.10761    0.01642 25.00000   6.555 0.000000724 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Correlation of Fixed Effects:
     ##             (Intr) agr.50 agr.75
     ## agar.vol50  -0.278              
     ## agar.vol75  -0.278  0.500       
     ## agar.vol100 -0.278  0.500  0.500
+
+``` r
+lmerTest::anova(agardil2)
+```
+
+    ## Analysis of Variance Table of type III  with  Satterthwaite 
+    ## approximation for degrees of freedom
+    ##            Sum Sq  Mean Sq NumDF DenDF F.value      Pr(>F)    
+    ## agar.vol 0.053786 0.017929     3    25  16.632 0.000003774 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Lets make sure we look at the regression diagnostics
 
@@ -127,7 +141,7 @@ The residuals look normally destributed. One could argue the need for a log tran
 
 ``` r
 # lsmeans for our linear model
-lm_lsmeans <- lsmeans(agardil2, c("agar.vol"))
+lm_lsmeans <- lsmeans::lsmeans(agardil2, c("agar.vol"))
 plot(lm_lsmeans)
 ```
 
@@ -146,7 +160,7 @@ lm_lsmeans
     ## Confidence level used: 0.95
 
 ``` r
-contrast(lm_lsmeans, "pairwise")
+lsmeans::contrast(lm_lsmeans, "pairwise")
 ```
 
     ##  contrast    estimate         SE df t.ratio p.value
