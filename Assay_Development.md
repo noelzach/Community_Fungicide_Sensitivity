@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-06-25 14:20:12 EDT"
+    ## [1] "2016-06-25 15:00:17 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -172,3 +172,20 @@ lsmeans::contrast(lm_lsmeans, "pairwise")
     ##  75 - 100 -0.02326451 0.01641624 25  -1.417  0.5008
     ## 
     ## P value adjustment: tukey method for comparing a family of 4 estimates
+
+Just getting the acctual SE for the cell means of agar volume.
+
+``` r
+mean.agar <- ddply(agardil, c("agar.vol"), 
+      summarise, 
+      mean = mean(EC50, na.rm = TRUE),
+      std.err = std.error(EC50, na.rm = TRUE))
+kable(mean.agar, digits = 3)
+```
+
+| agar.vol |   mean|  std.err|
+|:---------|------:|--------:|
+| 25       |  0.029|    0.006|
+| 50       |  0.073|    0.016|
+| 75       |  0.114|    0.025|
+| 100      |  0.137|    0.029|
