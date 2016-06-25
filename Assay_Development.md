@@ -4,7 +4,7 @@ rm(list = ls(all=TRUE)) # removes all variables in the global environment so you
 Sys.time() # prints out the time and date you ran the code
 ```
 
-    ## [1] "2016-06-07 14:14:16 EDT"
+    ## [1] "2016-06-25 13:45:59 EDT"
 
 ``` r
 options(scipen = 999) # stops anything from being in scientific notation
@@ -12,19 +12,19 @@ options(scipen = 999) # stops anything from being in scientific notation
 
 ### Assay Development
 
-Here we are analysing a dataset where we did different volumes of macerated agar in the wells of a 96 well plate to see which was going to be the closest to the actual poison plate data.
+Here we are analysing a dataset where we inoculated different volumes of macerated agar in the wells of a 96 well plate to see how the fungicide and assay would perform under these conditions.
 
 The following loop will generate EC50's for each isolate, agar volume, trial combination and save that output into a data frame called agardil, to use later for an ANOVA
 
 ``` r
-library(drc)
 agar.dil <- agar.dil[!agar.dil$is == "BLANK",]
 agar.dil <- agar.dil[!agar.dil$is == "NTC",]
 agar.dil$is <- factor(agar.dil$is)
 agardil <- NULL
 nm <- levels(agar.dil$is)
 for (t in 1:2){
-  for (i in seq_along(nm)){
+  for (r in 1:3){
+    for (i in seq_along(nm)){
 agardil.drc <- drm(100*relgrow ~ conc, 
                    curveid = agarvol, 
                    data = agar.dil[agar.dil$is == nm[[i]] & agar.dil$trial == t,], 
@@ -57,50 +57,179 @@ SI(agardil.drc, c(50, 50), ci = "delta")
 agar.vol <- unique(agar.dil$agarvol[agar.dil$is == nm[[i]]])
 agardil_i <- data.frame(rep(nm[[i]], 4), c(agar.vol), rep(t, 4), c(abs.ec50))
 agardil <- rbind.data.frame(agardil, agardil_i)
+   }
   }
 }
 colnames(agardil) <- c("is", "agar.vol", "trial", "EC50")
 ```
 
-Two-way ANOVA looking at the effect of isolate and agar volume added per well to the resulting EC50
+Looking at growth rates
 
 ``` r
-agardil.aov <- lm(EC50 ~ agar.vol + is + is:agar.vol, data = agardil)
-anova(agardil.aov)
+agar.dil$gr <- agar.dil$od600meanblank/24
+gr0 <- aov(gr ~ factor(agarvol) * is, data = agar.dil[agar.dil$conc == 0,])
+gr1 <- lmer(gr ~ factor(agarvol) + (1|is), data = agar.dil[agar.dil$conc == 0,])
+gr2 <- aov(gr ~ factor(agarvol), data = agar.dil[agar.dil$conc == 0,])
+anova(gr1, gr2, gr0)
 ```
 
-    ## Analysis of Variance Table
-    ## 
-    ## Response: EC50
-    ##             Df   Sum Sq  Mean Sq F value            Pr(>F)    
-    ## agar.vol     1 0.052874 0.052874 159.504 0.000000000004306 ***
-    ## is           3 0.073871 0.024624  74.282 0.000000000002743 ***
-    ## agar.vol:is  3 0.019905 0.006635  20.016 0.000001016249563 ***
-    ## Residuals   24 0.007956 0.000331                              
+    ## refitting model(s) with ML (instead of REML)
+
+    ## Data: agar.dil[agar.dil$conc == 0, ]
+    ## Models:
+    ## gr2: gr ~ factor(agarvol)
+    ## gr1: gr ~ factor(agarvol) + (1 | is)
+    ## gr0: gr ~ factor(agarvol) * is
+    ##     Df     AIC     BIC logLik deviance  Chisq Chi Df            Pr(>Chisq)
+    ## gr2  5 -741.01 -728.19 375.50  -751.01                                    
+    ## gr1  6 -831.52 -816.13 421.76  -843.52  92.51      1 < 0.00000000000000022
+    ## gr0 17 -916.03 -872.44 475.02  -950.03 106.52     11 < 0.00000000000000022
+    ##        
+    ## gr2    
+    ## gr1 ***
+    ## gr0 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-par(mfrow = c(2,2))
-plot(agardil.aov)
+plot(gr0)
 ```
 
-![](Assay_Development_files/figure-markdown_github/unnamed-chunk-4-1.png)<!-- -->
+![](Assay_Development_files/figure-markdown_github/unnamed-chunk-5-1.png)<!-- -->![](Assay_Development_files/figure-markdown_github/unnamed-chunk-5-2.png)<!-- -->![](Assay_Development_files/figure-markdown_github/unnamed-chunk-5-3.png)<!-- -->![](Assay_Development_files/figure-markdown_github/unnamed-chunk-5-4.png)<!-- -->
 
-Looks like the mean of everthing was significant. This means we have a significant effect of agar volume within each isolate. This means we should look at just the main effects (agar volume) within isolate.
+``` r
+anova(gr1)
+```
+
+    ## Analysis of Variance Table
+    ##                 Df     Sum Sq   Mean Sq F value
+    ## factor(agarvol)  3 0.00031591 0.0001053  13.418
+
+``` r
+gr1_lsmeans <- lsmeans(gr1, c("agarvol"))
+contrast(gr1_lsmeans, "pairwise")
+```
+
+    ##  contrast      estimate           SE df t.ratio p.value
+    ##  25 - 50  -0.0033639757 0.0008086937 89  -4.160  0.0004
+    ##  25 - 75  -0.0040700521 0.0008086937 89  -5.033  <.0001
+    ##  25 - 100 -0.0047000000 0.0008086937 89  -5.812  <.0001
+    ##  50 - 75  -0.0007060764 0.0008086937 89  -0.873  0.8187
+    ##  50 - 100 -0.0013360243 0.0008086937 89  -1.652  0.3552
+    ##  75 - 100 -0.0006299479 0.0008086937 89  -0.779  0.8638
+    ## 
+    ## P value adjustment: tukey method for comparing a family of 4 estimates
+
+Specifying a linear models to describe these data: model: EC50 as a function of agar volume and isolate as a random effect
+
+We are treating isolate as a random effect because these four isolates were chosen at random from a larger population of isolates and we want to generalize over isolate to see the effect of agar volume on the EC50.
+
+``` r
+agardil$agar.vol <- as.factor(agardil$agar.vol)
+class(agardil$agar.vol)
+```
+
+    ## [1] "factor"
+
+``` r
+agardil2 <- lmer(EC50 ~ agar.vol + (1|is), data = agardil)
+summary(agardil2)
+```
+
+    ## Linear mixed model fit by REML ['lmerMod']
+    ## Formula: EC50 ~ agar.vol + (1 | is)
+    ##    Data: agardil
+    ## 
+    ## REML criterion at convergence: -357.4
+    ## 
+    ## Scaled residuals: 
+    ##     Min      1Q  Median      3Q     Max 
+    ## -1.8597 -0.6176  0.0147  0.6567  2.0545 
+    ## 
+    ## Random effects:
+    ##  Groups   Name        Variance  Std.Dev.
+    ##  is       (Intercept) 0.0030401 0.05514 
+    ##  Residual             0.0009084 0.03014 
+    ## Number of obs: 96, groups:  is, 4
+    ## 
+    ## Fixed effects:
+    ##             Estimate Std. Error t value
+    ## (Intercept) 0.029382   0.028247   1.040
+    ## agar.vol50  0.043585   0.008701   5.009
+    ## agar.vol75  0.084341   0.008701   9.694
+    ## agar.vol100 0.107606   0.008701  12.368
+    ## 
+    ## Correlation of Fixed Effects:
+    ##             (Intr) agr.50 agr.75
+    ## agar.vol50  -0.154              
+    ## agar.vol75  -0.154  0.500       
+    ## agar.vol100 -0.154  0.500  0.500
+
+Lets make sure we look at the regression diagnostics
+
+``` r
+plot(agardil2)
+```
+
+![](Assay_Development_files/figure-markdown_github/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+qqnorm(resid(agardil2)); qqline(resid(agardil2))
+```
+
+![](Assay_Development_files/figure-markdown_github/unnamed-chunk-7-2.png)<!-- -->
+
+The residuals look normally destributed. One could argue the need for a log transformation for a "V" shaped residual plot, but I've already tried that and the contrasts do not change so I am keeping these data non-transformed.
+
+``` r
+# lsmeans for our linear model
+lm_lsmeans <- lsmeans(agardil2, c("agar.vol"))
+plot(lm_lsmeans)
+```
+
+![](Assay_Development_files/figure-markdown_github/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+contrast(lm_lsmeans, "pairwise")
+```
+
+    ##  contrast    estimate          SE df t.ratio p.value
+    ##  25 - 50  -0.04358513 0.008700589 89  -5.009  <.0001
+    ##  25 - 75  -0.08434124 0.008700589 89  -9.694  <.0001
+    ##  25 - 100 -0.10760575 0.008700589 89 -12.368  <.0001
+    ##  50 - 75  -0.04075612 0.008700589 89  -4.684  0.0001
+    ##  50 - 100 -0.06402062 0.008700589 89  -7.358  <.0001
+    ##  75 - 100 -0.02326451 0.008700589 89  -2.674  0.0434
+    ## 
+    ## P value adjustment: tukey method for comparing a family of 4 estimates
 
 ``` r
 library(agricolae)
 agardil.is1 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "AR_262.S.1.6.A",])
+lsmeans_is1 <- lsmeans(agardil.is1, c("agar.vol"))
+contrast(lsmeans_is1, "pairwise")
+```
+
+    ##  contrast     estimate          SE df t.ratio p.value
+    ##  25 - 50  -0.057466630 0.003182442 20 -18.057  <.0001
+    ##  25 - 75  -0.095353563 0.003182442 20 -29.962  <.0001
+    ##  25 - 100 -0.104886598 0.003182442 20 -32.958  <.0001
+    ##  50 - 75  -0.037886933 0.003182442 20 -11.905  <.0001
+    ##  50 - 100 -0.047419968 0.003182442 20 -14.900  <.0001
+    ##  75 - 100 -0.009533035 0.003182442 20  -2.996  0.0332
+    ## 
+    ## P value adjustment: tukey method for comparing a family of 4 estimates
+
+``` r
 anova(agardil.is1)
 ```
 
     ## Analysis of Variance Table
     ## 
     ## Response: EC50
-    ##           Df    Sum Sq   Mean Sq F value   Pr(>F)    
-    ## agar.vol   1 0.0124289 0.0124289  54.871 0.000311 ***
-    ## Residuals  6 0.0013591 0.0002265                     
+    ##           Df   Sum Sq   Mean Sq F value                Pr(>F)    
+    ## agar.vol   3 0.040756 0.0135854  447.13 < 0.00000000000000022 ***
+    ## Residuals 20 0.000608 0.0000304                                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -113,64 +242,81 @@ HSD.test(agardil.is1, "agar.vol", group = TRUE, console = TRUE)
     ## 
     ## HSD Test for EC50 
     ## 
-    ## Mean Square Error:  0.000226512 
+    ## Mean Square Error:  0.00003038381 
     ## 
     ## agar.vol,  means
     ## 
     ##          EC50          std r        Min        Max
-    ## 25  0.0449386 0.0008590435 2 0.04433116 0.04554603
-    ## 50  0.1024052 0.0137577210 2 0.09267705 0.11213340
-    ## 75  0.1402922 0.0025515245 2 0.13848796 0.14209636
-    ## 100 0.1498252 0.0024567502 2 0.14808801 0.15156238
+    ## 100 0.1498252 0.0019029906 6 0.14808801 0.15156238
+    ## 25  0.0449386 0.0006654122 6 0.04433116 0.04554603
+    ## 50  0.1024052 0.0106566848 6 0.09267705 0.11213340
+    ## 75  0.1402922 0.0019764024 6 0.13848796 0.14209636
     ## 
-    ## alpha: 0.05 ; Df Error: 6 
-    ## Critical Value of Studentized Range: 4.895599 
+    ## alpha: 0.05 ; Df Error: 20 
+    ## Critical Value of Studentized Range: 3.958293 
     ## 
-    ## Honestly Significant Difference: 0.05209985 
+    ## Honestly Significant Difference: 0.008907452 
     ## 
     ## Means with the same letter are not significantly different.
     ## 
     ## Groups, Treatments and means
     ## a     100     0.1498 
-    ## a     75      0.1403 
-    ## a     50      0.1024 
-    ## b     25      0.04494
+    ## b     75      0.1403 
+    ## c     50      0.1024 
+    ## d     25      0.04494
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 25]),3)
 ```
 
-    ## [1] 0.001
+    ## [1] 0
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 50]),3)
 ```
 
-    ## [1] 0.01
+    ## [1] 0.004
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 75]),3)
 ```
 
-    ## [1] 0.002
+    ## [1] 0.001
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "AR_262.S.1.6.A" & agardil$agar.vol == 100]),3)
 ```
 
-    ## [1] 0.002
+    ## [1] 0.001
 
 ``` r
 agardil.is2 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "IASO_1-16.3rt",])
+lsmeans_is2 <- lsmeans(agardil.is2, c("agar.vol"))
+contrast(lsmeans_is2, "pairwise")
+```
+
+    ##  contrast     estimate         SE df t.ratio p.value
+    ##  25 - 50  -0.016817430 0.01170387 20  -1.437  0.4922
+    ##  25 - 75  -0.042354028 0.01170387 20  -3.619  0.0085
+    ##  25 - 100 -0.036657296 0.01170387 20  -3.132  0.0249
+    ##  50 - 75  -0.025536598 0.01170387 20  -2.182  0.1625
+    ##  50 - 100 -0.019839866 0.01170387 20  -1.695  0.3521
+    ##  75 - 100  0.005696732 0.01170387 20   0.487  0.9612
+    ## 
+    ## P value adjustment: tukey method for comparing a family of 4 estimates
+
+``` r
 anova(agardil.is2)
 ```
 
     ## Analysis of Variance Table
     ## 
     ## Response: EC50
-    ##           Df    Sum Sq    Mean Sq F value Pr(>F)
-    ## agar.vol   1 0.0018362 0.00183625  3.4947 0.1108
-    ## Residuals  6 0.0031527 0.00052545
+    ##           Df    Sum Sq    Mean Sq F value   Pr(>F)   
+    ## agar.vol   3 0.0067480 0.00224932  5.4736 0.006523 **
+    ## Residuals 20 0.0082188 0.00041094                    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
 HSD.test(agardil.is2, "agar.vol", group = TRUE, console = TRUE)
@@ -181,28 +327,28 @@ HSD.test(agardil.is2, "agar.vol", group = TRUE, console = TRUE)
     ## 
     ## HSD Test for EC50 
     ## 
-    ## Mean Square Error:  0.000525446 
+    ## Mean Square Error:  0.0004109418 
     ## 
     ## agar.vol,  means
     ## 
     ##           EC50         std r        Min        Max
-    ## 25  0.01936196 0.002045684 2 0.01791545 0.02080848
-    ## 50  0.03617939 0.009319333 2 0.02958963 0.04276916
-    ## 75  0.06171599 0.047982559 2 0.02778720 0.09564478
-    ## 100 0.05601926 0.018607821 2 0.04286154 0.06917698
+    ## 100 0.05601926 0.014413556 6 0.04286154 0.06917698
+    ## 25  0.01936196 0.001584580 6 0.01791545 0.02080848
+    ## 50  0.03617939 0.007218725 6 0.02958963 0.04276916
+    ## 75  0.06171599 0.037167130 6 0.02778720 0.09564478
     ## 
-    ## alpha: 0.05 ; Df Error: 6 
-    ## Critical Value of Studentized Range: 4.895599 
+    ## alpha: 0.05 ; Df Error: 20 
+    ## Critical Value of Studentized Range: 3.958293 
     ## 
-    ## Honestly Significant Difference: 0.07935145 
+    ## Honestly Significant Difference: 0.03275839 
     ## 
     ## Means with the same letter are not significantly different.
     ## 
     ## Groups, Treatments and means
     ## a     75      0.06172 
     ## a     100     0.05602 
-    ## a     50      0.03618 
-    ## a     25      0.01936
+    ## ab    50      0.03618 
+    ## b     25      0.01936
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 25]), 3)
@@ -214,19 +360,19 @@ round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$ag
 round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 50]), 3)
 ```
 
-    ## [1] 0.007
+    ## [1] 0.003
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 75]), 3)
 ```
 
-    ## [1] 0.034
+    ## [1] 0.015
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "IASO_1-16.3rt" & agardil$agar.vol == 100]), 3)
 ```
 
-    ## [1] 0.013
+    ## [1] 0.006
 
 ``` r
 agardil.is3 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "ILSO_5-42c",])
@@ -236,9 +382,9 @@ anova(agardil.is3)
     ## Analysis of Variance Table
     ## 
     ## Response: EC50
-    ##           Df    Sum Sq   Mean Sq F value    Pr(>F)    
-    ## agar.vol   1 0.0057540 0.0057540  59.789 0.0002456 ***
-    ## Residuals  6 0.0005774 0.0000962                      
+    ##           Df    Sum Sq   Mean Sq F value            Pr(>F)    
+    ## agar.vol   3 0.0179240 0.0059747  111.65 0.000000000001162 ***
+    ## Residuals 20 0.0010702 0.0000535                              
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -251,28 +397,28 @@ HSD.test(agardil.is3, "agar.vol", group = TRUE, console = TRUE)
     ## 
     ## HSD Test for EC50 
     ## 
-    ## Mean Square Error:  0.00009623774 
+    ## Mean Square Error:  0.00005351047 
     ## 
     ## agar.vol,  means
     ## 
     ##           EC50         std r         Min        Max
-    ## 25  0.01030753 0.001692936 2 0.009110444 0.01150462
-    ## 50  0.03084290 0.003490594 2 0.028374678 0.03331112
-    ## 75  0.04694725 0.005894925 2 0.042778905 0.05111559
-    ## 100 0.08489764 0.017519590 2 0.072509421 0.09728586
+    ## 100 0.08489764 0.013570616 6 0.072509421 0.09728586
+    ## 25  0.01030753 0.001311343 6 0.009110444 0.01150462
+    ## 50  0.03084290 0.002703803 6 0.028374678 0.03331112
+    ## 75  0.04694725 0.004566189 6 0.042778905 0.05111559
     ## 
-    ## alpha: 0.05 ; Df Error: 6 
-    ## Critical Value of Studentized Range: 4.895599 
+    ## alpha: 0.05 ; Df Error: 20 
+    ## Critical Value of Studentized Range: 3.958293 
     ## 
-    ## Honestly Significant Difference: 0.03395968 
+    ## Honestly Significant Difference: 0.01182093 
     ## 
     ## Means with the same letter are not significantly different.
     ## 
     ## Groups, Treatments and means
     ## a     100     0.0849 
     ## b     75      0.04695 
-    ## bc    50      0.03084 
-    ## c     25      0.01031
+    ## c     50      0.03084 
+    ## d     25      0.01031
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 25]), 3)
@@ -284,19 +430,19 @@ round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.
 round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 50]), 3)
 ```
 
-    ## [1] 0.002
+    ## [1] 0.001
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 75]), 3)
 ```
 
-    ## [1] 0.004
+    ## [1] 0.002
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "ILSO_5-42c" & agardil$agar.vol == 100]), 3)
 ```
 
-    ## [1] 0.012
+    ## [1] 0.006
 
 ``` r
 agardil.is4 <- lm(EC50 ~ agar.vol, data = agardil[agardil$is == "NESO_2-13",])
@@ -306,9 +452,9 @@ anova(agardil.is4)
     ## Analysis of Variance Table
     ## 
     ## Response: EC50
-    ##           Df   Sum Sq  Mean Sq F value     Pr(>F)    
-    ## agar.vol   1 0.052760 0.052760  110.43 0.00004362 ***
-    ## Residuals  6 0.002867 0.000478                       
+    ##           Df  Sum Sq Mean Sq F value              Pr(>F)    
+    ## agar.vol   3 0.15987 0.05329  152.05 0.00000000000006204 ***
+    ## Residuals 20 0.00701 0.00035                                
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -321,52 +467,52 @@ HSD.test(agardil.is4, "agar.vol", group = TRUE, console = TRUE)
     ## 
     ## HSD Test for EC50 
     ## 
-    ## Mean Square Error:  0.0004777732 
+    ## Mean Square Error:  0.0003504848 
     ## 
     ## agar.vol,  means
     ## 
     ##           EC50         std r       Min       Max
-    ## 25  0.04292115 0.002223921 2 0.0413486 0.0444937
-    ## 50  0.12244222 0.029411068 2 0.1016455 0.1432390
-    ## 75  0.20593881 0.035747349 2 0.1806616 0.2312160
-    ## 100 0.25721014 0.013738118 2 0.2474958 0.2669245
+    ## 100 0.25721014 0.010641500 6 0.2474958 0.2669245
+    ## 25  0.04292115 0.001722642 6 0.0413486 0.0444937
+    ## 50  0.12244222 0.022781715 6 0.1016455 0.1432390
+    ## 75  0.20593881 0.027689778 6 0.1806616 0.2312160
     ## 
-    ## alpha: 0.05 ; Df Error: 6 
-    ## Critical Value of Studentized Range: 4.895599 
+    ## alpha: 0.05 ; Df Error: 20 
+    ## Critical Value of Studentized Range: 3.958293 
     ## 
-    ## Honestly Significant Difference: 0.07566617 
+    ## Honestly Significant Difference: 0.0302529 
     ## 
     ## Means with the same letter are not significantly different.
     ## 
     ## Groups, Treatments and means
     ## a     100     0.2572 
-    ## a     75      0.2059 
-    ## b     50      0.1224 
-    ## c     25      0.04292
+    ## b     75      0.2059 
+    ## c     50      0.1224 
+    ## d     25      0.04292
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 25]), 3)
 ```
 
-    ## [1] 0.002
+    ## [1] 0.001
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 50]), 3)
 ```
 
-    ## [1] 0.021
+    ## [1] 0.009
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 75]), 3)
 ```
 
-    ## [1] 0.025
+    ## [1] 0.011
 
 ``` r
 round(plotrix::std.error(agardil$EC50[agardil$is == "NESO_2-13" & agardil$agar.vol == 100]), 3)
 ```
 
-    ## [1] 0.01
+    ## [1] 0.004
 
 ``` r
 library(ggplot2)
@@ -390,4 +536,4 @@ p1 <- ggplot(agardil, aes(x = agar.vol, y = EC50, color = factor(is))) +
 print(p1)
 ```
 
-![](Assay_Development_files/figure-markdown_github/unnamed-chunk-6-1.png)<!-- -->
+![](Assay_Development_files/figure-markdown_github/unnamed-chunk-10-1.png)<!-- -->
