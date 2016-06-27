@@ -7,7 +7,7 @@ Currently the data associated with this project will not be available in this re
 
 ###This project can be broken into the following sections
 * [Assay Development](Assay_Development.md)
-* [Assay Validation]()
+* [Assay Validation](MethodCorrelation.md)
 * [Assay Evaluation]()
 * [Community Sensitivity]()
 * [Phylogenetics](Phylogenetics.md)
