@@ -1,0 +1,443 @@
+---
+title: "Method_Correlation"
+author: "Zachary Noel"
+date: "May 2, 2016"
+output:
+  html_notebook: default
+  md_document:
+    variant: markdown_github
+  pdf_document: default
+---
+
+```{r Setting options, message=FALSE, warning=FALSE, include=FALSE}
+rm(list = ls(all=TRUE)) # removes all variables in the global environment so you start fresh
+
+Sys.time() # prints out the time and date you ran the code
+
+options(scipen = 999) # stops anything from being in scientific notation
+```
+
+```{r Reading in data, message=FALSE, warning=FALSE, include=FALSE}
+cor <- data.frame(read.csv("correlation.csv", na.strings = "na"))
+cor <- data.frame(na.omit(cor)) #omits missing values
+```
+
+A function to do a t-test to determine if varias values in a linear model is significantly different than others. 
+Arguments:
+reg = the linear model 
+coefnum = 1 = intercept, 2 = beta ...
+val = value you would like to test, the default lm tests if value is significantly different from zero. 
+```{r Functions, include=FALSE}
+ttest <- function(reg, coefnum, val){
+  co <- coef(summary(reg))
+  tstat <- (co[coefnum,1]-val)/co[coefnum,2]
+  2 * pt(abs(tstat), reg$df.residual, lower.tail = FALSE)
+} 
+
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+# Source: https://gist.github.com/stevenworthington/3178163
+ipak <- function(pkg){
+new.pkg <- pkg[!(pkg %in% installed.packages()[,"Package"])]
+if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+sapply(pkg, require, character.only = TRUE)
+}
+packages <- c("drc", "lme4", "lsmeans", "plyr", "plotrix", "knitr", "ggplot2", "lmtest", "lmerTest", "Rmisc", "gridExtra", "plotly", "webshot")
+ipak(packages)
+```
+
+This function will run a linear model of the percent relative growth, as well as correlations in both pearson and spearman and will also plot it in ggplot, if desired.
+
+data = data.frame
+concentration = concentration
+plot = logical
+
+```{r Function for relative growth}
+RelGrowth.lm <- function(data, concentration, plot){
+  data.string.y <- data$odrelgrowth[data$conc == concentration]
+  data.string.x <- data$ppmeanrelgrowth[data$conc == concentration]
+  lin.mod <- lm(data.string.y ~ data.string.x)
+  sum.linmod <- summary(lin.mod)
+  pearson <- cor.test(data.string.x, data.string.y, method = "pearson")
+  spearman <- cor.test(data.string.x, data.string.y, method = "spearman")
+  beta <- ttest(lin.mod, 2, 1) # t-test for Beta significantly different than one
+  bias <- (sum.linmod[[4]][2] - 1)*100 #percent Bias
+  coeff.var <- (sum.linmod[[4]][4]/sum.linmod[[4]][2])*100
+  if(plot == TRUE){
+  p <- ggplot(data[data$conc == concentration,], aes(y = odrelgrowth, x = ppmeanrelgrowth)) +
+    geom_point(aes(colour = factor(species))) +
+    guides(colour = guide_legend(title = "Species")) +
+    scale_y_continuous(limits = c(0, 110), breaks = c(0, 25, 50, 75, 100)) +
+    scale_x_continuous(limits = c(0, 110), breaks = c(0, 25, 50, 75, 100)) +
+    geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") +
+    xlab("% Poison Plate Growth, relative to control") + 
+    ylab("% Optical Density growth, relative to control") + 
+    theme_bw() +
+    theme(axis.text.x = element_text(size = 10, face = "bold"),
+          axis.text.y = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size = 15, face = "bold"),
+          axis.title.y = element_text(size = 15, face = "bold"),
+          legend.text = element_text(size = 10, face = "bold.italic"),
+          legend.key = element_blank(),
+          legend.title = element_text(size = 15, face="bold"))
+  results <- list(sum.linmod, pearson, spearman, beta, bias, coeff.var, p)
+  names(results) <- c("lm", "pearson", "spearman", "beta.t", "per.bias","coeff.var", "plot")
+  return(results)
+  } else {
+    results <- list(sum.linmod, pearson, spearman, beta, bias, coeff.var)
+    names(results) <- c("lm", "pearson", "spearman", "beta.t", "per.bias", "coeff.var")
+    return(results)
+  }
+}
+```
+
+We want to look at the correlation of the two methods, poison plate and optical density, to determine if the optical density method is any good.
+
+Ethaboxam relative growth correlations
+```{r Ethaboxam Relative Growth}
+eth.cor.pp <- ddply(cor[cor$chem == "ethaboxam" & cor$method == "poison_plate",], c("is", "species", "conc"), 
+      summarize, 
+      ppmeanrelgrowth = 100*mean(relgrowth, na.rm = TRUE))
+eth.cor.od <- ddply(cor[cor$chem == "ethaboxam" & cor$method == "optical_density",], c("is", "species", "conc"), 
+      summarize, 
+      odmeanrelgrowth = 100*mean(relgrowth, na.rm = TRUE))
+eth.cor <- cbind.data.frame(eth.cor.pp, eth.cor.od$odmeanrelgrowth)
+
+colnames(eth.cor) <- c("is", "species", "conc", "ppmeanrelgrowth", "odrelgrowth")
+eth.001 <- RelGrowth.lm(eth.cor, concentration = 0.01, plot = TRUE)
+eth.001
+eth.01 <- RelGrowth.lm(eth.cor, concentration = 0.1, plot = TRUE)
+eth.01
+eth.05 <- RelGrowth.lm(eth.cor, concentration = 0.5, plot = TRUE)
+eth.05
+eth.1 <- RelGrowth.lm(eth.cor, concentration = 1, plot = TRUE)
+eth.1
+eth.5 <- RelGrowth.lm(eth.cor, concentration = 5, plot = TRUE)
+eth.5
+eth.20 <- RelGrowth.lm(eth.cor, concentration = 20, plot = TRUE)
+eth.20
+```
+
+Mefenoxam relative growth correlations
+```{r Mefenoxam relative growth}
+mef.cor.pp <- ddply(cor[cor$chem == "mefenoxam" & cor$method == "poison_plate",], c("is", "species", "conc"), 
+      summarize, 
+      ppmeanrelgrowth = 100*mean(relgrowth, na.rm = TRUE))
+mef.cor.od <- ddply(cor[cor$chem == "mefenoxam" & cor$method == "optical_density",], c("is", "species", "conc"), 
+      summarize, 
+      odmeanrelgrowth = 100*mean(relgrowth, na.rm = TRUE))
+mef.cor.od <- mef.cor.od[!mef.cor.od$conc == 100,]
+mef.cor.pp <- mef.cor.pp[!mef.cor.pp$conc == 100,]
+mef.cor <- cbind.data.frame(mef.cor.pp, mef.cor.od$odmeanrelgrowth)
+colnames(mef.cor) <- c("is", "species", "conc", "ppmeanrelgrowth", "odrelgrowth")
+mef.001 <- RelGrowth.lm(mef.cor, concentration = 0.01, plot = TRUE)
+mef.001
+mef.01 <- RelGrowth.lm(mef.cor, concentration = 0.1, plot = TRUE)
+mef.01
+mef.05 <- RelGrowth.lm(mef.cor, concentration = 0.5, plot = TRUE)
+mef.05
+mef.1 <- RelGrowth.lm(mef.cor, concentration = 1, plot = TRUE)
+mef.1
+mef.10 <- RelGrowth.lm(mef.cor, concentration = 10, plot = TRUE)
+mef.10
+```
+
+From the analysis above it looks like there are some isolates with percent relative growth above 50% at the highest concentration tested. Therefore those isolates will not have an EC50 and cannot be calculated. We will express these isolates in terms of their relative growth. 
+```{r}
+# briefly we are going to split up the data frame into each concentration to make it easier to take out individual isolates
+cor_eth <- cor[cor$chem == "ethaboxam",]
+cor_mef <- cor[cor$chem == "mefenoxam",]
+
+# taking out insensitive isolates, otherwise convergence would not occur with the ll.4 model
+insens_iso_eth <- c("MISO_8-29.1", "C-MNSO2_2-21", "NDSO_L-8-6", "ILSO_6-15C")
+insens_iso_mef <- c("V-MISO2_6-46", "23.4B", "1.18A")
+
+# creating a dataframe with only those isolates
+insenscor_eth <- cor_eth[cor_eth$is %in% insens_iso_eth,]
+insenscor_mef <- cor_mef[cor_mef$is %in% insens_iso_mef,]
+
+# taking out those isolates
+cor_eth <- cor_eth[!cor_eth$is %in% insens_iso_eth,]
+cor_mef <- cor_mef[!cor_mef$is %in% insens_iso_mef,]
+cor_eth$is <- factor(cor_eth$is)
+cor_mef$is <- factor(cor_mef$is)
+
+cor <- rbind.data.frame(cor_eth, cor_mef)
+```
+
+This code iterates through every isolate and generates a relative and absolute EC50 using the LL.4 model of drc and saves the output. I already went through and picked out the isolates for both mefenoxam and ethaboxam that have an EC50 beyond the concentration range tested in this study. 
+```{r, warning=FALSE, results="hide", message=FALSE}
+
+relative <- function(data){
+  EC50.pp.rel <- data.frame(ED(data, 
+                             respLev = c(50), 
+                             type = "relative",
+                             interval = "delta"),
+                          level = 0.95)
+rel.ec50.pp <- EC50.pp.rel[1][[1]]
+return(rel.ec50.pp)
+}
+absolute <- function(data){
+  EC50.pp.abs <- data.frame(ED(data, 
+                             respLev = c(50), 
+                             type = "absolute",
+                             interval = "delta"),
+                          level = 0.95)
+abs.ec50.pp <- EC50.pp.abs[1][[1]]
+return(abs.ec50.pp)
+}
+plug_EC <- function(chemistry){
+  nm <- unique(cor$is[cor$chem == as.character(chemistry)])
+dataframe_names <- c("is", "species", "method", "trial", "chem", "absolute", "relative")
+meth.cor <- NULL
+for (i in seq_along(nm)){
+mefcor.pp.drc <- drm(100*relgrowth ~ conc, data = cor[cor$is == nm[[i]] & cor$method == "poison_plate" & cor$chem == as.character(chemistry),], curveid = trial, fct = LL.4(), na.action = na.omit)
+mefcor.od.drc <- drm(100*relgrowth ~ conc, data = cor[cor$is == nm[[i]] & cor$method == "optical_density" & cor$chem == as.character(chemistry),], curveid = trial, fct = LL.4(), na.action = na.omit)
+paste(print(nm[[i]]))
+# RELATIVE 
+rel.pp.mef <- relative(mefcor.pp.drc)
+rel.od.mef <- relative(mefcor.od.drc)
+
+# ABSOLUTE 
+abs.pp.mef <- absolute(mefcor.pp.drc)
+abs.od.mef <- absolute(mefcor.od.drc)
+
+mef.cor_od <- data.frame(cbind.data.frame( 
+                  nm[[i]], 
+                  as.character(unique(cor$species[cor$is == nm[[i]]])),
+                  as.character(unique(cor$method[cor$is == nm[[i]] & cor$method == "optical_density"])),
+                  unique(cor$trial[cor$is == nm[[i]] & cor$method == "optical_density"]),
+                  as.character(chemistry),
+                  as.numeric(abs.od.mef),
+                  as.numeric(rel.od.mef)))
+colnames(mef.cor_od) <- dataframe_names
+mef.cor_pp <- data.frame(cbind.data.frame( 
+                  nm[[i]], 
+                  as.character(unique(cor$species[cor$is == nm[[i]]])),
+                  as.character(unique(cor$method[cor$is == nm[[i]] & cor$method == "poison_plate"])),
+                  unique(cor$trial[cor$is == nm[[i]] & cor$method == "poison_plate"]),
+                  as.character(chemistry),
+                  as.numeric(abs.pp.mef),
+                  as.numeric(rel.pp.mef)))
+colnames(mef.cor_pp) <- dataframe_names
+
+meth.cor <- rbind.data.frame(meth.cor, mef.cor_od, mef.cor_pp)
+  }
+return(meth.cor)
+}
+
+mefenoxam_ec50 <- plug_EC("mefenoxam")
+ethaboxam_ec50 <- plug_EC("ethaboxam")
+
+ec50_cor <- rbind.data.frame(ethaboxam_ec50, mefenoxam_ec50)
+
+# not sure why one of the isolates had duplicates but they did, so this code will find duplicates in the absolute ec50s and delete the entire row. 
+ec50_cor <- ec50_cor[-which(duplicated(ec50_cor$absolute)),] 
+```
+
+Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam on both poison plate and optical density method. 
+```{r, warning=FALSE, echo=FALSE, message=FALSE}
+EC50.cor <- ddply(ec50_cor, c("is", "species", "chem", "method"), 
+      summarise, 
+      mean.abs = mean(absolute, na.rm = TRUE),
+      std.abs = std.error(absolute, na.rm = TRUE),
+      mean.rel = mean(relative, na.rm = TRUE),
+      std.rel = std.error(relative, na.rm = TRUE))
+kable(EC50.cor)
+```
+
+Lets do an ANOVA for each chemistry and the effect of method. We have log transformed these data for homogeneity of variance.
+
+model 1: method as fixed effect and isolate as random effect 
+
+We are treating isolate as a random effect because we we sampled these isolates from a larger possible population of isolates and we want to generalize over all isolates
+```{r}
+lm_mef <- lmer(absolute ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "mefenoxam",])
+hist(residuals(lm_mef)) # not normally distributed residuals 
+qqnorm(resid(lm_mef), main = "not log transformed"); qqline(resid(lm_mef))
+lm_mef <- lmer(log(absolute) ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "mefenoxam",])
+hist(residuals(lm_mef)) # log transformation is good
+qqnorm(resid(lm_mef), main = "log transformed"); qqline(resid(lm_mef))
+
+lmerTest::anova(lm_mef, test.statistic="F", type = 2) # using type II ANOVA for unbalanced data. Some isolates have more technical replicates than others. So the mean over all isolates is different.  
+plot(lm_mef, type = c("p", "smooth"), id = 0.05) # regression diagnostics
+lsmeans_mef <- lsmeans::lsmeans(lm_mef, "method")
+plot(lsmeans_mef)
+```
+This is what we expected, no significant differnces for the method.
+
+Lets do the same for ethaboxam.
+```{r}
+lm_eth <- lmer(absolute ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "ethaboxam",])
+hist(residuals(lm_eth)) # not normally distributed residuals 
+qqnorm(resid(lm_eth), main = "not log transformed"); qqline(resid(lm_eth))
+
+lmerTest::anova(lm_eth, test.statistic="F", type = 2) # using type II ANOVA for unbalanced data. Some isolates have more technical replicates than others. So the mean over all isolates is different.  
+plot(lm_eth, type = c("p", "smooth"), id = 0.05)# regression diagnostics
+lsmeans_eth <- lsmeans::lsmeans(lm_eth, "method")
+plot(lsmeans_eth)
+```
+
+Lets do correlation analysis between the two methods separated by chemistry.
+```{r, include = FALSE}
+# we are just adjusting the dataset here to get it in a good plotting format
+EC50_pp <- EC50.cor[EC50.cor$method == "poison_plate",]
+colnames(EC50_pp) <- c("is", "species_pp", "chem", "method", "mean.abs.pp", "std.abs.pp", "mean.rel.pp", "std.rel.pp")
+EC50_od <- EC50.cor[EC50.cor$method == "optical_density",]
+colnames(EC50_od) <- c("is", "species_od", "chem", "method", "mean.abs.od", "std.abs.od", "mean.rel.od", "std.rel.od")
+EC50 <- cbind.data.frame(EC50_pp, EC50_od)
+```
+
+We are testing the correlation of the absolute EC50s between the two methods. 
+We are going to use spearman's correlation coeffiecient since it is rank based it can handle outliers with high leverage. 
+```{r}
+cor_mef <- lm(mean.abs.pp ~ mean.abs.od, data = EC50[EC50$chem == "mefenoxam",])
+summary(cor_mef)
+par(mfrow = c(2,2))
+plot(cor_mef)
+ttest(cor_mef, 1, 0) # tests if intercept is significantly different than 0
+ttest(cor_mef, 2, 1) # tests if slope (beta) is significantly different than 1
+(summary(cor_mef)[[4]][2] - 1)*100 #percent Bias
+``` 
+There is a significant linear relationship between the mean absolute EC50 using either method. Since it looked like there were some points with a bit of leverage we will use spearman's correlation to test the significance of the correlation.We will also look at the spearman:pearson correlation ratio to see if the correlation is more monotonic or linear. 
+
+```{r}
+spear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
+         EC50$mean.abs.od[EC50$chem == "mefenoxam"], 
+         method = "spearman")
+pear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
+         EC50$mean.abs.od[EC50$chem == "mefenoxam"], 
+         method = "pearson")
+spear.cor
+pear.cor
+```
+Since the spearman correlation coeficient is lower than the pearson coefficient, this indicates we have more of a linear relationship than a monotonic one. This is a good thing because we would expect a perfect linear relationship between the methods. 
+
+```{r}
+cor_eth <- lm(mean.abs.pp ~ mean.abs.od, data = EC50[EC50$chem == "ethaboxam",])
+summary(cor_eth)
+```
+```{r}
+par(mfrow = c(2,2))
+plot(cor_eth)
+```
+```{r}
+ttest(cor_eth, 1, 0) # tests if intercept is significantly different than 0
+ttest(cor_eth, 2, 1) # tests if slope (beta) is significantly different than 1
+(summary(cor_eth)[[4]][2] - 1)*100 #percent Bias
+``` 
+There is a significant linear relationship between the mean absolute EC50 using either method. Since it looked like there were some points with a bit of leverage we will use spearman's correlation to test the significance of the correlation.
+
+```{r}
+spear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
+         EC50$mean.abs.od[EC50$chem == "ethaboxam"], 
+         method = "spearman")
+pear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
+         EC50$mean.abs.od[EC50$chem == "ethaboxam"], 
+         method = "pearson")
+spear.cor
+pear.cor
+```
+Since the spearman correlation coeficient is higher than the pearson coefficient, this indicates we have more of a monotonic relationship than a linear one. This is ok, but we would like to see it flipped around. 
+
+```{r, fig.height=3, fig.width=6}
+EC50_spec <- ddply(EC50, c("species_od","chem", "method"), 
+      summarize, 
+      mean.abs.pp = mean(mean.abs.pp, na.rm = TRUE),
+      std.abs.pp = std.error(std.abs.pp, na.rm = TRUE),
+      mean.abs.od = mean(mean.abs.od, na.rm = TRUE),
+      std.abs.od = std.error(std.abs.od, na.rm = TRUE))
+
+ggplot(EC50_spec, aes(mean.abs.pp, mean.abs.od)) + 
+  geom_point(aes(colour = species_od, shape = chem)) +
+  #geom_errorbarh(aes(xmax = mean.abs.pp + std.abs.pp, xmin = mean.abs.pp - std.abs.pp, height = .01)) +
+  #geom_errorbar(aes(ymax = mean.abs.od + std.abs.od, ymin = mean.abs.od - std.abs.od, width = .01)) +
+  geom_smooth(method = "lm", se = FALSE) + 
+  theme_bw() +
+  guides(colour = guide_legend(title = "Species"),
+         shape = guide_legend(title = "Chemistry")) + 
+  xlab(expression(bold("Poison Plate EC"[50]))) + 
+  ylab(expression(bold("Optical Density EC"[50]))) + 
+  scale_y_continuous(limits = c(0, 2), breaks = c(0, 0.5, 1, 1.5, 2)) +
+  scale_x_continuous(limits = c(0, 2), breaks = c(0, 0.5, 1, 1.5, 2)) +
+  theme(axis.text.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          axis.text.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          axis.title.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          axis.title.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          legend.text = element_text(family = "Times New Roman", size = 10, face = "bold.italic"),
+          legend.key = element_blank(),
+          legend.title = element_text(family = "Times New Roman", size = 15, face="bold"),
+   strip.text.x = element_text(family = "Times New Roman",size = 15, face = "bold"))
+```
+
+```{r}
+summary(lm(mean.abs.pp ~ mean.abs.od, data = EC50_spec))
+```
+
+Based on the above analysis, we will select the relative growth at 
+```{r}
+mef.cor$chem <- "Mefenoxam"
+eth.cor$chem <- "Ethaboxam"
+cor.plot.relgrowth <- rbind.data.frame(eth.cor[eth.cor$conc == 0.5,], mef.cor[mef.cor$conc == 0.5,])
+EC50$chem2 <- factor(EC50$chem, labels = c("Ethaboxam", "Mefenoxam"))
+length(levels(cor.plot.relgrowth$is))
+ p <- ggplot(cor.plot.relgrowth, aes(y = odrelgrowth, x = ppmeanrelgrowth)) +
+    geom_point(aes(color = factor(species))) +
+    guides(colour = guide_legend(title = "Species")) +
+    scale_y_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
+    scale_x_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
+    geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") +
+    xlab("% Relative Growth, Poison Plate") + 
+    ylab("% Relative Growth, Optical Density") + 
+    theme_bw() +
+    theme(axis.text.x = element_text(size = 10, face = "bold"),
+          axis.text.y = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size = 10, face = "bold"),
+          axis.title.y = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 6, face = "bold.italic"),
+          legend.key = element_blank(),
+          legend.title = element_text(size = 10, face="bold"),
+          legend.position = "bottom", 
+          strip.text.x = element_text(size = 15, face = "bold")) + 
+   facet_wrap(~chem)
+p1 <- ggplot(EC50, aes(mean.abs.pp, mean.abs.od)) + 
+  geom_point(aes(color = factor(species_od))) +
+  geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") + 
+  guides(colour = guide_legend(title = "Species")) +
+  xlab(expression(bold("Poison plate EC"[50]))) + 
+  ylab(expression(bold("Optical density EC"[50]))) + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(size = 10, face = "bold"),
+          axis.text.y = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size = 10, face = "bold"),
+          axis.title.y = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 9, face = "bold.italic"),
+          legend.key = element_blank(),
+          legend.title = element_text(size = 10, face="bold"),
+   strip.text.x = element_text(size = 15, face = "bold")) +
+  facet_wrap(~chem2)
+```
+```{r}
+#extract legend
+#https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
+g_legend<-function(a.gplot){
+  tmp <- ggplot_gtable(ggplot_build(a.gplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)}
+
+mylegend<-g_legend(p)
+```
+```{r, fig.width=6}
+p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
+                         p + theme(legend.position="none"),
+                         nrow=2),
+             mylegend, nrow=2,heights=c(5, 1))
+ggsave(file="FigureCorrelation.pdf", plot = p3, width = 9, height = 9, dpi = 300)
+```
+
+
+
+
+

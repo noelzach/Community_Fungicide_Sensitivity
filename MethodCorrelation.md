@@ -32,7 +32,7 @@ RelGrowth.lm <- function(data, concentration, plot){
           legend.text = element_text(size = 10, face = "bold.italic"),
           legend.key = element_blank(),
           legend.title = element_text(size = 15, face="bold"))
-  results <- list(sum.linmod, pearson, spearman, beta, bias, coeff.var, ggplotly(p))
+  results <- list(sum.linmod, pearson, spearman, beta, bias, coeff.var, p)
   names(results) <- c("lm", "pearson", "spearman", "beta.t", "per.bias","coeff.var", "plot")
   return(results)
   } else {
@@ -119,6 +119,8 @@ eth.001
     ## 
     ## $plot
 
+![](MethodCorrelation_files/figure-markdown_github/Ethaboxam%20Relative%20Growth-1.png)
+
 ``` r
 eth.01 <- RelGrowth.lm(eth.cor, concentration = 0.1, plot = TRUE)
 eth.01
@@ -181,6 +183,10 @@ eth.01
     ## [1] 6.848325
     ## 
     ## $plot
+
+    ## Warning: Removed 2 rows containing missing values (geom_smooth).
+
+![](MethodCorrelation_files/figure-markdown_github/Ethaboxam%20Relative%20Growth-2.png)
 
 ``` r
 eth.05 <- RelGrowth.lm(eth.cor, concentration = 0.5, plot = TRUE)
@@ -245,6 +251,8 @@ eth.05
     ## 
     ## $plot
 
+![](MethodCorrelation_files/figure-markdown_github/Ethaboxam%20Relative%20Growth-3.png)
+
 ``` r
 eth.1 <- RelGrowth.lm(eth.cor, concentration = 1, plot = TRUE)
 eth.1
@@ -307,6 +315,8 @@ eth.1
     ## [1] 12.76849
     ## 
     ## $plot
+
+![](MethodCorrelation_files/figure-markdown_github/Ethaboxam%20Relative%20Growth-4.png)
 
 ``` r
 eth.5 <- RelGrowth.lm(eth.cor, concentration = 5, plot = TRUE)
@@ -377,6 +387,10 @@ eth.5
     ## 
     ## $plot
 
+    ## Warning: Removed 9 rows containing missing values (geom_smooth).
+
+![](MethodCorrelation_files/figure-markdown_github/Ethaboxam%20Relative%20Growth-5.png)
+
 ``` r
 eth.20 <- RelGrowth.lm(eth.cor, concentration = 20, plot = TRUE)
 ```
@@ -446,6 +460,10 @@ eth.20
     ## 
     ## $plot
 
+    ## Warning: Removed 6 rows containing missing values (geom_smooth).
+
+![](MethodCorrelation_files/figure-markdown_github/Ethaboxam%20Relative%20Growth-6.png)
+
 Mefenoxam relative growth correlations
 
 ``` r
@@ -460,11 +478,6 @@ mef.cor.pp <- mef.cor.pp[!mef.cor.pp$conc == 100,]
 mef.cor <- cbind.data.frame(mef.cor.pp, mef.cor.od$odmeanrelgrowth)
 colnames(mef.cor) <- c("is", "species", "conc", "ppmeanrelgrowth", "odrelgrowth")
 mef.001 <- RelGrowth.lm(mef.cor, concentration = 0.01, plot = TRUE)
-```
-
-    ## Warning: Removed 2 rows containing non-finite values (stat_smooth).
-
-``` r
 mef.001
 ```
 
@@ -526,13 +539,16 @@ mef.001
     ## 
     ## $plot
 
+    ## Warning: Removed 2 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 2 rows containing missing values (geom_point).
+
+    ## Warning: Removed 17 rows containing missing values (geom_smooth).
+
+![](MethodCorrelation_files/figure-markdown_github/Mefenoxam%20relative%20growth-1.png)
+
 ``` r
 mef.01 <- RelGrowth.lm(mef.cor, concentration = 0.1, plot = TRUE)
-```
-
-    ## Warning: Removed 1 rows containing non-finite values (stat_smooth).
-
-``` r
 mef.01
 ```
 
@@ -593,6 +609,12 @@ mef.01
     ## [1] 12.77914
     ## 
     ## $plot
+
+    ## Warning: Removed 1 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 1 rows containing missing values (geom_point).
+
+![](MethodCorrelation_files/figure-markdown_github/Mefenoxam%20relative%20growth-2.png)
 
 ``` r
 mef.05 <- RelGrowth.lm(mef.cor, concentration = 0.5, plot = TRUE)
@@ -663,6 +685,8 @@ mef.05
     ## 
     ## $plot
 
+![](MethodCorrelation_files/figure-markdown_github/Mefenoxam%20relative%20growth-3.png)
+
 ``` r
 mef.1 <- RelGrowth.lm(mef.cor, concentration = 1, plot = TRUE)
 ```
@@ -732,14 +756,14 @@ mef.1
     ## 
     ## $plot
 
+![](MethodCorrelation_files/figure-markdown_github/Mefenoxam%20relative%20growth-4.png)
+
 ``` r
 mef.10 <- RelGrowth.lm(mef.cor, concentration = 10, plot = TRUE)
 ```
 
     ## Warning in cor.test.default(data.string.x, data.string.y, method =
     ## "spearman"): Cannot compute exact p-value with ties
-
-    ## Warning: Removed 1 rows containing non-finite values (stat_smooth).
 
 ``` r
 mef.10
@@ -802,6 +826,12 @@ mef.10
     ## [1] 6.280042
     ## 
     ## $plot
+
+    ## Warning: Removed 1 rows containing non-finite values (stat_smooth).
+
+    ## Warning: Removed 1 rows containing missing values (geom_point).
+
+![](MethodCorrelation_files/figure-markdown_github/Mefenoxam%20relative%20growth-5.png)
 
 From the analysis above it looks like there are some isolates with percent relative growth above 50% at the highest concentration tested. Therefore those isolates will not have an EC50 and cannot be calculated. We will express these isolates in terms of their relative growth.
 
@@ -1005,26 +1035,26 @@ lm_mef <- lmer(absolute ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "mef
 hist(residuals(lm_mef)) # not normally distributed residuals 
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
 ``` r
 qqnorm(resid(lm_mef), main = "not log transformed"); qqline(resid(lm_mef))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-2.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-2.png)
 
 ``` r
 lm_mef <- lmer(log(absolute) ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "mefenoxam",])
 hist(residuals(lm_mef)) # log transformation is good
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-3.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-3.png)
 
 ``` r
 qqnorm(resid(lm_mef), main = "log transformed"); qqline(resid(lm_mef))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-4.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-4.png)
 
 ``` r
 lmerTest::anova(lm_mef, test.statistic="F", type = 2) # using type II ANOVA for unbalanced data. Some isolates have more technical replicates than others. So the mean over all isolates is different.  
@@ -1039,14 +1069,14 @@ lmerTest::anova(lm_mef, test.statistic="F", type = 2) # using type II ANOVA for 
 plot(lm_mef, type = c("p", "smooth"), id = 0.05) # regression diagnostics
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-5.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-5.png)
 
 ``` r
 lsmeans_mef <- lsmeans::lsmeans(lm_mef, "method")
 plot(lsmeans_mef)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-6.png) This is what we expected, no significant differnces for the method.
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-6.png) This is what we expected, no significant differnces for the method.
 
 Lets do the same for ethaboxam.
 
@@ -1055,13 +1085,13 @@ lm_eth <- lmer(absolute ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "eth
 hist(residuals(lm_eth)) # not normally distributed residuals 
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-1.png)
 
 ``` r
 qqnorm(resid(lm_eth), main = "not log transformed"); qqline(resid(lm_eth))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-11-2.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-2.png)
 
 ``` r
 lmerTest::anova(lm_eth, test.statistic="F", type = 2) # using type II ANOVA for unbalanced data. Some isolates have more technical replicates than others. So the mean over all isolates is different.  
@@ -1076,14 +1106,14 @@ lmerTest::anova(lm_eth, test.statistic="F", type = 2) # using type II ANOVA for 
 plot(lm_eth, type = c("p", "smooth"), id = 0.05)# regression diagnostics
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-11-3.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-3.png)
 
 ``` r
 lsmeans_eth <- lsmeans::lsmeans(lm_eth, "method")
 plot(lsmeans_eth)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-11-4.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-4.png)
 
 Lets do correlation analysis between the two methods separated by chemistry.
 
@@ -1119,7 +1149,7 @@ par(mfrow = c(2,2))
 plot(cor_mef)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-13-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-7-1.png)
 
 ``` r
 ttest(cor_mef, 1, 0) # tests if intercept is significantly different than 0
@@ -1209,7 +1239,7 @@ par(mfrow = c(2,2))
 plot(cor_eth)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-15-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 ``` r
 ttest(cor_eth, 1, 0) # tests if intercept is significantly different than 0
@@ -1238,7 +1268,6 @@ spear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"],
 pear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
          EC50$mean.abs.od[EC50$chem == "ethaboxam"], 
          method = "pearson")
-
 spear.cor
 ```
 
@@ -1284,10 +1313,23 @@ ggplot(EC50_spec, aes(mean.abs.pp, mean.abs.od)) +
   #geom_errorbar(aes(ymax = mean.abs.od + std.abs.od, ymin = mean.abs.od - std.abs.od, width = .01)) +
   geom_smooth(method = "lm", se = FALSE) + 
   theme_bw() +
-  facet_wrap(~chem)
+  guides(colour = guide_legend(title = "Species"),
+         shape = guide_legend(title = "Chemistry")) + 
+  xlab(expression(bold("Poison Plate EC"[50]))) + 
+  ylab(expression(bold("Optical Density EC"[50]))) + 
+  scale_y_continuous(limits = c(0, 2), breaks = c(0, 0.5, 1, 1.5, 2)) +
+  scale_x_continuous(limits = c(0, 2), breaks = c(0, 0.5, 1, 1.5, 2)) +
+  theme(axis.text.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          axis.text.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          axis.title.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          axis.title.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
+          legend.text = element_text(family = "Times New Roman", size = 10, face = "bold.italic"),
+          legend.key = element_blank(),
+          legend.title = element_text(family = "Times New Roman", size = 15, face="bold"),
+   strip.text.x = element_text(family = "Times New Roman",size = 15, face = "bold"))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-13-1.png)
 
 ``` r
 summary(lm(mean.abs.pp ~ mean.abs.od, data = EC50_spec))
@@ -1317,47 +1359,52 @@ Based on the above analysis, we will select the relative growth at
 ``` r
 mef.cor$chem <- "Mefenoxam"
 eth.cor$chem <- "Ethaboxam"
-cor.plot.relgrowth <- rbind.data.frame(eth.cor[eth.cor$conc == 20,], mef.cor[mef.cor$conc == 10,])
+cor.plot.relgrowth <- rbind.data.frame(eth.cor[eth.cor$conc == 0.5,], mef.cor[mef.cor$conc == 0.5,])
 EC50$chem2 <- factor(EC50$chem, labels = c("Ethaboxam", "Mefenoxam"))
-colorcount <- length(unique(EC50$species_od))
+length(levels(cor.plot.relgrowth$is))
+```
+
+    ## [1] 46
+
+``` r
  p <- ggplot(cor.plot.relgrowth, aes(y = odrelgrowth, x = ppmeanrelgrowth)) +
     geom_point(aes(color = factor(species))) +
-    scale_color_brewer(palette = "Set1") +
     guides(colour = guide_legend(title = "Species")) +
     scale_y_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
     scale_x_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
     geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") +
-    xlab("% Poison Plate Growth, relative to control") + 
-    ylab("% Optical Density growth, relative to control") + 
+    xlab("% Relative Growth, Poison Plate") + 
+    ylab("% Relative Growth, Optical Density") + 
     theme_bw() +
-    theme(axis.text.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          axis.text.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          axis.title.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          axis.title.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          legend.text = element_text(family = "Times New Roman", size = 10, face = "bold.italic"),
+    theme(axis.text.x = element_text(size = 10, face = "bold"),
+          axis.text.y = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size = 10, face = "bold"),
+          axis.title.y = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 6, face = "bold.italic"),
           legend.key = element_blank(),
-          legend.title = element_text(size = 15, face="bold"),
+          legend.title = element_text(size = 10, face="bold"),
           legend.position = "bottom", 
-          strip.text.x = element_text(family = "Times New Roman",size = 15, face = "bold")) + 
+          strip.text.x = element_text(size = 15, face = "bold")) + 
    facet_wrap(~chem)
 p1 <- ggplot(EC50, aes(mean.abs.pp, mean.abs.od)) + 
-  geom_point(aes(colour = species_od)) +
+  geom_point(aes(color = factor(species_od))) +
   geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") + 
   guides(colour = guide_legend(title = "Species")) +
   xlab(expression(bold("Poison plate EC"[50]))) + 
   ylab(expression(bold("Optical density EC"[50]))) + 
   theme_bw() + 
-  theme(axis.text.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          axis.text.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          axis.title.x = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          axis.title.y = element_text(family = "Times New Roman", size = 10, face = "bold"),
-          legend.text = element_text(family = "Times New Roman", size = 10, face = "bold.italic"),
+  theme(axis.text.x = element_text(size = 10, face = "bold"),
+          axis.text.y = element_text(size = 10, face = "bold"),
+          axis.title.x = element_text(size = 10, face = "bold"),
+          axis.title.y = element_text(size = 10, face = "bold"),
+          legend.text = element_text(size = 9, face = "bold.italic"),
           legend.key = element_blank(),
-          legend.title = element_text(family = "Times New Roman", size = 15, face="bold"),
-   strip.text.x = element_text(family = "Times New Roman",size = 15, face = "bold")) +
+          legend.title = element_text(size = 10, face="bold"),
+   strip.text.x = element_text(size = 15, face = "bold")) +
   facet_wrap(~chem2)
+```
 
-library(gridExtra)
+``` r
 #extract legend
 #https://github.com/hadley/ggplot2/wiki/Share-a-legend-between-two-ggplot2-graphs
 g_legend<-function(a.gplot){
@@ -1369,14 +1416,6 @@ g_legend<-function(a.gplot){
 mylegend<-g_legend(p)
 ```
 
-    ## Warning in RColorBrewer::brewer.pal(n, pal): n too large, allowed maximum for palette Set1 is 9
-    ## Returning the palette you asked for with that many colors
-
-    ## Warning: Removed 9 rows containing missing values (geom_smooth).
-
-    ## Warning in RColorBrewer::brewer.pal(n, pal): n too large, allowed maximum for palette Set1 is 9
-    ## Returning the palette you asked for with that many colors
-
 ``` r
 p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
                          p + theme(legend.position="none"),
@@ -1384,9 +1423,8 @@ p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
              mylegend, nrow=2,heights=c(5, 1))
 ```
 
-    ## Warning in RColorBrewer::brewer.pal(n, pal): n too large, allowed maximum for palette Set1 is 9
-    ## Returning the palette you asked for with that many colors
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-17-1.png)
 
-    ## Warning: Removed 9 rows containing missing values (geom_smooth).
-
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-18-1.png)
+``` r
+ggsave(file="FigureCorrelation.pdf", plot = p3, width = 9, height = 9, dpi = 300)
+```
