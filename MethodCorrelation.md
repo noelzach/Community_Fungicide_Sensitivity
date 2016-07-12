@@ -1426,5 +1426,14 @@ p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
 ![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-17-1.png)
 
 ``` r
+print(p3)
+```
+
+    ## TableGrob (2 x 1) "arrange": 2 grobs
+    ##   z     cells    name              grob
+    ## 1 1 (1-1,1-1) arrange   gtable[arrange]
+    ## 2 2 (2-2,1-1) arrange gtable[guide-box]
+
+``` r
 ggsave(file="FigureCorrelation.pdf", plot = p3, width = 9, height = 9, dpi = 300)
 ```

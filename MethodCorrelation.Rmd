@@ -434,6 +434,7 @@ p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
                          p + theme(legend.position="none"),
                          nrow=2),
              mylegend, nrow=2,heights=c(5, 1))
+print(p3)
 ggsave(file="FigureCorrelation.pdf", plot = p3, width = 9, height = 9, dpi = 300)
 ```
 
