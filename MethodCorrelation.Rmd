@@ -3,9 +3,9 @@ title: "Method_Correlation"
 author: "Zachary Noel"
 date: "May 2, 2016"
 output:
-  html_notebook: default
   md_document:
     variant: markdown_github
+  html_notebook: default
   pdf_document: default
 ---
 
