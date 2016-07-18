@@ -1115,6 +1115,55 @@ plot(lsmeans_eth)
 
 ![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-4.png)
 
+Now lets put chemistry in as a fixed effect and fit the interaction bewtween chemistry and method.
+
+We have log-transformed these data for homogienity of variance
+
+``` r
+lm3 <- lm(log(absolute) ~ is * chem * method, data = ec50_cor)
+hist(residuals(lm3)) # log transformation is good
+```
+
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-1.png)
+
+``` r
+qqnorm(resid(lm3), main = "log transformed"); qqline(resid(lm3))
+```
+
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-2.png)
+
+``` r
+car::Anova(lm3, type = 2)
+```
+
+    ## Anova Table (Type II tests)
+    ## 
+    ## Response: log(absolute)
+    ##                Sum Sq  Df  F value                Pr(>F)    
+    ## is             318.21  38  15.3235 < 0.00000000000000022 ***
+    ## chem            64.98   1 118.9061 < 0.00000000000000022 ***
+    ## method           0.75   1   1.3801              0.242386    
+    ## is:chem         10.65   6   3.2482              0.005385 ** 
+    ## is:method       20.46  38   0.9853              0.504058    
+    ## chem:method      0.24   1   0.4403              0.508217    
+    ## is:chem:method   0.91   6   0.2778              0.946444    
+    ## Residuals       66.12 121                                   
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+``` r
+plot(lm3)
+```
+
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-3.png)![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-4.png)![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-5.png)![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-6.png)
+
+``` r
+lsmeans3 <- lsmeans::lsmeans(lm3, c("is", "chem", "method"))
+plot(lsmeans3)
+```
+
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-7.png)
+
 Lets do correlation analysis between the two methods separated by chemistry.
 
 We are testing the correlation of the absolute EC50s between the two methods. We are going to use spearman's correlation coeffiecient since it is rank based it can handle outliers with high leverage.
@@ -1149,7 +1198,7 @@ par(mfrow = c(2,2))
 plot(cor_mef)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 ``` r
 ttest(cor_mef, 1, 0) # tests if intercept is significantly different than 0
@@ -1239,7 +1288,7 @@ par(mfrow = c(2,2))
 plot(cor_eth)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-11-1.png)
 
 ``` r
 ttest(cor_eth, 1, 0) # tests if intercept is significantly different than 0
@@ -1329,7 +1378,7 @@ ggplot(EC50_spec, aes(mean.abs.pp, mean.abs.od)) +
    strip.text.x = element_text(family = "Times New Roman",size = 15, face = "bold"))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-13-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-14-1.png)
 
 ``` r
 summary(lm(mean.abs.pp ~ mean.abs.od, data = EC50_spec))
@@ -1423,7 +1472,7 @@ p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
              mylegend, nrow=2,heights=c(5, 1))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-18-1.png)
 
 ``` r
 print(p3)

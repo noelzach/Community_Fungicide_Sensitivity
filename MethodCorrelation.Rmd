@@ -279,6 +279,20 @@ lsmeans_eth <- lsmeans::lsmeans(lm_eth, "method")
 plot(lsmeans_eth)
 ```
 
+Now lets put chemistry in as a fixed effect and fit the interaction bewtween chemistry and method. 
+
+We have log-transformed these data for homogienity of variance 
+```{r}
+lm3 <- lm(log(absolute) ~ is * chem * method, data = ec50_cor)
+hist(residuals(lm3)) # log transformation is good
+qqnorm(resid(lm3), main = "log transformed"); qqline(resid(lm3))
+car::Anova(lm3, type = 2)
+plot(lm3)
+lsmeans3 <- lsmeans::lsmeans(lm3, c("is", "chem", "method"))
+plot(lsmeans3)
+```
+
+
 Lets do correlation analysis between the two methods separated by chemistry.
 ```{r, include = FALSE}
 # we are just adjusting the dataset here to get it in a good plotting format
