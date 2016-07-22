@@ -1133,21 +1133,21 @@ qqnorm(resid(lm3), main = "log transformed"); qqline(resid(lm3))
 ![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-2.png)
 
 ``` r
-car::Anova(lm3, type = 2)
+anova(lm3)
 ```
 
-    ## Anova Table (Type II tests)
+    ## Analysis of Variance Table
     ## 
     ## Response: log(absolute)
-    ##                Sum Sq  Df  F value                Pr(>F)    
-    ## is             318.21  38  15.3235 < 0.00000000000000022 ***
-    ## chem            64.98   1 118.9061 < 0.00000000000000022 ***
-    ## method           0.75   1   1.3801              0.242386    
-    ## is:chem         10.65   6   3.2482              0.005385 ** 
-    ## is:method       20.46  38   0.9853              0.504058    
-    ## chem:method      0.24   1   0.4403              0.508217    
-    ## is:chem:method   0.91   6   0.2778              0.946444    
-    ## Residuals       66.12 121                                   
+    ##                 Df Sum Sq Mean Sq  F value                Pr(>F)    
+    ## is              38 365.52   9.619  17.6018 < 0.00000000000000022 ***
+    ## chem             1  64.77  64.770 118.5218 < 0.00000000000000022 ***
+    ## method           1   0.76   0.758   1.3869              0.241245    
+    ## is:chem          6  11.28   1.880   3.4411              0.003579 ** 
+    ## is:method       38  20.44   0.538   0.9843              0.505606    
+    ## chem:method      1   0.24   0.241   0.4403              0.508217    
+    ## is:chem:method   6   0.91   0.152   0.2778              0.946444    
+    ## Residuals      121  66.12   0.546                                   
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
@@ -1421,14 +1421,19 @@ length(levels(cor.plot.relgrowth$is))
     guides(colour = guide_legend(title = "Species")) +
     scale_y_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
     scale_x_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
-    geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") +
+     geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x, fullrange = TRUE) +
+  stat_poly_eq(formula = y ~ x, 
+               aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~~~")), 
+               parse = TRUE) +
     xlab("% Relative Growth, Poison Plate") + 
     ylab("% Relative Growth, Optical Density") + 
-    theme_bw() +
+    theme_classic() +
     theme(axis.text.x = element_text(size = 10, face = "bold"),
           axis.text.y = element_text(size = 10, face = "bold"),
           axis.title.x = element_text(size = 10, face = "bold"),
           axis.title.y = element_text(size = 10, face = "bold"),
+          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
           legend.text = element_text(size = 6, face = "bold.italic"),
           legend.key = element_blank(),
           legend.title = element_text(size = 10, face="bold"),
@@ -1437,19 +1442,24 @@ length(levels(cor.plot.relgrowth$is))
    facet_wrap(~chem)
 p1 <- ggplot(EC50, aes(mean.abs.pp, mean.abs.od)) + 
   geom_point(aes(color = factor(species_od))) +
-  geom_smooth(method = "lm", se = FALSE, fullrange = TRUE, col = "black") + 
+ geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x, fullrange = TRUE) +
+  stat_poly_eq(formula = y ~ x, 
+               aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~~~")), 
+               parse = TRUE) +
   guides(colour = guide_legend(title = "Species")) +
   xlab(expression(bold("Poison plate EC"[50]))) + 
   ylab(expression(bold("Optical density EC"[50]))) + 
-  theme_bw() + 
+  theme_classic() + 
   theme(axis.text.x = element_text(size = 10, face = "bold"),
-          axis.text.y = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size = 10, face = "bold"),
-          axis.title.y = element_text(size = 10, face = "bold"),
-          legend.text = element_text(size = 9, face = "bold.italic"),
-          legend.key = element_blank(),
-          legend.title = element_text(size = 10, face="bold"),
-   strip.text.x = element_text(size = 15, face = "bold")) +
+        axis.text.y = element_text(size = 10, face = "bold"),
+        axis.title.x = element_text(size = 10, face = "bold"),
+        axis.title.y = element_text(size = 10, face = "bold"),
+        axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+        axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+        legend.text = element_text(size = 9, face = "bold.italic"),
+        legend.key = element_blank(),
+        legend.title = element_text(size = 10, face="bold"),
+        strip.text.x = element_text(size = 15, face = "bold")) +
   facet_wrap(~chem2)
 ```
 
