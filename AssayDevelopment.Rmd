@@ -1,0 +1,213 @@
+---
+title: "AssayDevelopment"
+author: "Zachary Noel"
+date: "5/3/2017"
+output:
+  md_document:
+    variant: markdown_github
+---
+
+```{r eval=FALSE, include=FALSE}
+rm(list = ls(all=TRUE)) # removes all variables in the global environment so you start fresh
+
+Sys.time() # prints out the time and date you ran the code
+
+options(scipen = 999) # stops anything from being in scientific notation
+```
+
+```{r setup, echo = FALSE, include=FALSE}
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+# Source: https://gist.github.com/stevenworthington/3178163
+ipak <- function(pkg){
+new.pkg <- pkg[!(pkg %in% installed.packages()[,"Package"])]
+if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+sapply(pkg, require, character.only = TRUE)
+}
+```
+
+###Libraries
+```{r libraries, echo=FALSE, message=FALSE}
+packages <- c("drc","ggplot2", "lsmeans", "lmerTest", "plotrix", "plyr", "knitr")
+ipak(packages)
+```
+
+```{r read data}
+agar.dil <- data.frame(read.csv("agardilutions.csv", na.strings = "na"))
+```
+
+###Assay Development
+
+Here we are analysing a dataset where we inoculated different volumes of macerated agar in the wells of a 96 well plate to see how the fungicide and assay would perform under these conditions.
+
+Here we are testing if the difference in macerated agar volume increased the background noise. 
+We will pull out only the blank wells and do an ANOVA, treating trial as a random factor to test the affect of agar volume on optical density
+```{r ANOVA0}
+agar.dil.blank <- agar.dil[agar.dil$is == "BLANK",]
+
+lm <- lmer(od600 ~ agarvol + (1|trial), data = agar.dil.blank)
+anova(lm)
+```
+
+###Linear model of percent relative growth
+```{r DATA CLEAN}
+#doing a little data clean up, taking out the blank and ntc wells
+noblank <- c("BLANK","NTC")
+agar.dilnoblank <- agar.dil[!agar.dil$is %in% noblank,]
+agar.dilnoblank$agarvol <- as.factor(agar.dilnoblank$agarvol) #convert the numeric data to factor
+agar.dilnoblank$relgrow[agar.dilnoblank$conc == 10] <- agar.dilnoblank$relgrow[agar.dilnoblank$conc == 10]*100
+
+agar.dilnoblank$relgrow[agar.dilnoblank$conc == 0.5] <- agar.dilnoblank$relgrow[agar.dilnoblank$conc == 0.5]*100
+```
+
+Testing if the percent realative growth at 0.5 ppm was increased by the agar volume
+We do have one missing value that was a contaminated well
+```{r ANOVA1}
+rg_aov.05 <- lmer(relgrow ~ agarvol + (1|is), data = agar.dilnoblank[agar.dilnoblank$conc == 0.5,])
+summary(rg_aov.05)
+lmerTest::anova(rg_aov.05, type = 1) # type 1 SS ANOVA table, balanced design all types are the same 
+```
+
+Lets make sure we look at the regression diagnostics
+```{r Regression Diag1.}
+plot(rg_aov.05)
+qqnorm(resid(rg_aov.05)); qqline(resid(rg_aov.05))
+hist(resid(rg_aov.05))
+```
+
+Get the LS MEANS
+```{r LSMEANS1}
+# lsmeans for our linear model
+lm_lsmeans_rg <- lsmeans::lsmeans(rg_aov.05, c("agarvol"))
+plot(lm_lsmeans_rg)
+lm_lsmeans_rg
+Results_rg_aov05 <- cld(lm_lsmeans_rg, alpha = 0.05, adjust = "tuk", Letters = letters, reversed = FALSE)
+```
+
+Testing if the percent realative growth at 10 ppm was increased by the agar volume
+We do have one missing value that was a contaminated well
+```{r ANOVA2}
+rg_aov.10 <- lmer(relgrow ~ agarvol + (1|is), data = agar.dilnoblank[agar.dilnoblank$conc == 10,])
+summary(rg_aov.10)
+lmerTest::anova(rg_aov.10, type = 1) # type 1 SS ANOVA table, balanced design all types are the same 
+```
+
+Lets make sure we look at the regression diagnostics
+```{r Regression Diag.}
+plot(rg_aov.10)
+qqnorm(resid(rg_aov.10)); qqline(resid(rg_aov.10))
+hist(resid(rg_aov.10))
+```
+
+Get the LS MEANS
+```{r LSMEANS}
+# lsmeans for our linear model
+lm_lsmeans_rg <- lsmeans::lsmeans(rg_aov.10, c("agarvol"))
+plot(lm_lsmeans_rg)
+lm_lsmeans_rg
+Results_rg_aov10 <- cld(lm_lsmeans_rg, alpha = 0.05, adjust = "tuk", Letters = letters, reversed = FALSE)
+```
+
+###EC50 estimation
+
+The following loop will generate EC50's for each isolate, agar volume, trial combination and save that output into a data frame called agardil, to use later for an ANOVA
+```{r EC50 loop, warning=FALSE, echo=TRUE, results="hide", message=FALSE}
+agar.dil <- agar.dil[!agar.dil$is == "BLANK",]
+agar.dil <- agar.dil[!agar.dil$is == "NTC",]
+agar.dil$is <- factor(agar.dil$is)
+agardil <- NULL
+nm <- levels(agar.dil$is)
+for (t in 1:2){
+    for (i in seq_along(nm)){
+agardil.drc <- drm(100*relgrow ~ conc, 
+                   curveid = agarvol, 
+                   data = agar.dil[agar.dil$is == nm[[i]] & agar.dil$trial == t,], 
+                   fct = LL.4())
+
+summary.mef.fit <- data.frame(summary(agardil.drc)[[3]])
+#outputs the summary of just the EC50 data including the estimate, standard error, upper and lower bounds of the 95% confidence intervals around the EC50
+print(nm[[i]])
+print("RELATIVE EC50")
+EC50.od.rel <- data.frame(ED(agardil.drc, 
+                             respLev = c(50), 
+                             type = "relative",
+                             interval = "delta"),
+                          level = 0.95)
+rel.ec50 <- EC50.od.rel[1][[1]]
+print("ABSOLUTE EC50")
+EC50.od.abs <- data.frame(ED(agardil.drc, 
+                             respLev = c(50), 
+                             type = "absolute",
+                             interval = "delta"),
+                          level = 0.95)
+abs.ec50 <- EC50.od.rel[1][[1]]
+print(summary.mef.fit)
+print("LACK FIT")
+fit <- modelFit(agardil.drc)
+lackfitpvalue <- fit[5]$`p value`[2]
+print(fit)
+print("COMP EC50")
+#SI(agardil.drc, c(50, 50), ci = "delta")
+agar.vol <- unique(agar.dil$agarvol[agar.dil$is == nm[[i]]])
+agardil_i <- data.frame(rep(nm[[i]], 4), c(agar.vol), rep(t, 4), c(abs.ec50))
+agardil <- rbind.data.frame(agardil, agardil_i)
+   }
+
+}
+colnames(agardil) <- c("is", "agar.vol", "trial", "EC50")
+```
+
+##Linear models to describe these data: 
+
+model: EC50 as a function of agar volume and isolate as a random effect 
+
+We are treating isolate as a random effect because these four isolates were chosen at random from a larger population of isolates and we want to generalize over isolate to see the effect of agar volume on the EC50. 
+
+```{r ANOVA3}
+agardil$agar.vol <- as.factor(agardil$agar.vol) #convert the numeric data to factor
+agardil_aov <- lmer(EC50 ~ agar.vol + (1|is), data = agardil)
+summary(agardil_aov)
+lmerTest::anova(agardil_aov, type = 1) # type 1 SS ANOVA table, balanced design all types are the same 
+```
+
+Lets make sure we look at the regression diagnostics
+```{r Regression Diag2.}
+plot(agardil_aov)
+qqnorm(resid(agardil_aov)); qqline(resid(agardil_aov))
+```
+
+The residuals look normally destributed. One could argue the need for a log transformation for a "V" shaped residual plot, but I've already tried that and the contrasts do not change so I am keeping these data non-transformed. 
+
+```{r LSMEANS2}
+# lsmeans for our linear model
+lm_lsmeans <- lsmeans::lsmeans(agardil_aov, c("agar.vol"))
+plot(lm_lsmeans)
+lm_lsmeans
+Results_EC50_aov <- cld(lm_lsmeans, alpha = 0.05, adjust = "tuk", Letters = letters, reversed = FALSE)
+```
+
+Just getting the acctual SE for the cell means of agar volume. 
+```{r CELLMEANS}
+mean.agar <- ddply(agardil, c("agar.vol"), 
+      summarise, 
+      mean = mean(EC50, na.rm = TRUE),
+      std.err = std.error(EC50, na.rm = TRUE))
+mean.agar$contrasts <- Results_EC50_aov$.group
+mean_rg10 <- ddply(agar.dilnoblank[agar.dilnoblank$conc == 10,], c("agarvol"),
+                 summarise, 
+                 mean = mean(relgrow, na.rm = TRUE), 
+                 std.err = std.error(relgrow, na.rm = TRUE))
+mean_rg10$contrasts <- Results_rg_aov10$.group
+mean_rg05 <- ddply(agar.dilnoblank[agar.dilnoblank$conc == 0.5,], c("agarvol"),
+                 summarise, 
+                 mean = mean(relgrow, na.rm = TRUE), 
+                 std.err = std.error(relgrow, na.rm = TRUE))
+mean_rg05$contrasts <- Results_rg_aov05$.group
+FINAL.TABLE <- cbind.data.frame(mean.agar, mean_rg10$mean, mean_rg10$std.err, mean_rg10$contrasts, mean_rg05$mean, mean_rg05$std.err, mean_rg05$contrasts)
+colnames(FINAL.TABLE) <- c("Agar Volume", "Mean EC50", "EC50.SE", "EC50.Contrast", "Mean RG 10", "RG10.SE", "RG10.Contrast", "Mean RG 05", "RG05.SE", "RG05.Contrast")
+```
+
+```{r FINAL TABLE}
+kable(FINAL.TABLE, digits = 3)
+```
