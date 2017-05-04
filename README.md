@@ -6,10 +6,10 @@ This project is an extension of a project to survey oomycetes associated with so
 Currently the data associated with this project will not be available in this repository until in its final form. Therefore, the code provided in this repository can be used as a guide for those wishing to perform similar analysis.
 
 ###This project can be broken into the following sections
-* [Assay Development](Assay_Development.md)
+* [Assay Development](AssayDevelopment.md)
 * [Assay Validation](MethodCorrelation.md)
 * [Assay Evaluation]()
-* [Community Sensitivity]()
+* [Community Sensitivity](FungicideSensitivity.md)
 * [Phylogenetics](Phylogenetics.md)
 
  
