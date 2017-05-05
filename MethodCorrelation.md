@@ -1,5 +1,129 @@
 A function to do a t-test to determine if varias values in a linear model is significantly different than others. Arguments: reg = the linear model coefnum = 1 = intercept, 2 = beta ... val = value you would like to test, the default lm tests if value is significantly different from zero.
 
+### Libraries
+
+``` r
+packages <- c("drc", "lme4", "lsmeans", "plyr", "plotrix", "knitr", "ggplot2", "lmtest", "lmerTest", "Rmisc", "gridExtra", "plotly", "webshot", "ggpmisc", "ggsci","scales")
+ipak(packages)
+```
+
+    ## Loading required package: drc
+
+    ## Loading required package: MASS
+
+    ## 
+    ## 'drc' has been loaded.
+
+    ## Please cite R and 'drc' if used for a publication,
+
+    ## for references type 'citation()' and 'citation('drc')'.
+
+    ## 
+    ## Attaching package: 'drc'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     gaussian, getInitial
+
+    ## Loading required package: lme4
+
+    ## Loading required package: Matrix
+
+    ## Loading required package: lsmeans
+
+    ## Loading required package: estimability
+
+    ## Loading required package: plyr
+
+    ## Loading required package: plotrix
+
+    ## Loading required package: knitr
+
+    ## Loading required package: ggplot2
+
+    ## Loading required package: lmtest
+
+    ## Loading required package: zoo
+
+    ## 
+    ## Attaching package: 'zoo'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     as.Date, as.Date.numeric
+
+    ## Loading required package: lmerTest
+
+    ## 
+    ## Attaching package: 'lmerTest'
+
+    ## The following object is masked from 'package:lsmeans':
+    ## 
+    ##     lsmeans
+
+    ## The following object is masked from 'package:lme4':
+    ## 
+    ##     lmer
+
+    ## The following object is masked from 'package:stats':
+    ## 
+    ##     step
+
+    ## Loading required package: Rmisc
+
+    ## Loading required package: lattice
+
+    ## Loading required package: gridExtra
+
+    ## Loading required package: plotly
+
+    ## 
+    ## Attaching package: 'plotly'
+
+    ## The following object is masked from 'package:ggplot2':
+    ## 
+    ##     last_plot
+
+    ## The following objects are masked from 'package:plyr':
+    ## 
+    ##     arrange, mutate, rename, summarise
+
+    ## The following object is masked from 'package:MASS':
+    ## 
+    ##     select
+
+    ## The following object is masked from 'package:stats':
+    ## 
+    ##     filter
+
+    ## The following object is masked from 'package:graphics':
+    ## 
+    ##     layout
+
+    ## Loading required package: webshot
+
+    ## Loading required package: ggpmisc
+
+    ## Loading required package: ggsci
+
+    ## Loading required package: scales
+
+    ## 
+    ## Attaching package: 'scales'
+
+    ## The following object is masked from 'package:plotrix':
+    ## 
+    ##     rescale
+
+    ##       drc      lme4   lsmeans      plyr   plotrix     knitr   ggplot2 
+    ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
+    ##    lmtest  lmerTest     Rmisc gridExtra    plotly   webshot   ggpmisc 
+    ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
+    ##     ggsci    scales 
+    ##      TRUE      TRUE
+
+### Read Data
+
 This function will run a linear model of the percent relative growth, as well as correlations in both pearson and spearman and will also plot it in ggplot, if desired.
 
 data = data.frame concentration = concentration plot = logical
@@ -152,7 +276,7 @@ eth.01
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 14.602, df = 28, p-value = 0.00000000000001288
+    ## t = 14.602, df = 28, p-value = 0.00000000000001276
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
     ##  0.8769341 0.9714102
@@ -219,7 +343,7 @@ eth.05
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 12.404, df = 28, p-value = 0.0000000000006795
+    ## t = 12.404, df = 28, p-value = 0.0000000000006796
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
     ##  0.8368378 0.9614634
@@ -488,18 +612,18 @@ mef.001
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -22.312  -7.813   1.125   4.147  43.193 
+    ## -22.401  -7.896   1.015   4.075  43.111 
     ## 
     ## Coefficients:
     ##               Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)   -19.3623    24.0959  -0.804 0.430657    
-    ## data.string.x   1.2286     0.2687   4.573 0.000165 ***
+    ## (Intercept)   -19.1481    24.1889  -0.792 0.437439    
+    ## data.string.x   1.2270     0.2699   4.546 0.000176 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 12.51 on 21 degrees of freedom
-    ## Multiple R-squared:  0.4989, Adjusted R-squared:  0.4751 
-    ## F-statistic: 20.91 on 1 and 21 DF,  p-value: 0.0001652
+    ## Residual standard error: 12.54 on 21 degrees of freedom
+    ## Multiple R-squared:  0.496,  Adjusted R-squared:  0.472 
+    ## F-statistic: 20.67 on 1 and 21 DF,  p-value: 0.000176
     ## 
     ## 
     ## $pearson
@@ -507,13 +631,13 @@ mef.001
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 4.5729, df = 21, p-value = 0.0001652
+    ## t = 4.5464, df = 21, p-value = 0.000176
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.4149891 0.8663221
+    ##  0.4115842 0.8652940
     ## sample estimates:
     ##       cor 
-    ## 0.7063615 
+    ## 0.7042981 
     ## 
     ## 
     ## $spearman
@@ -521,21 +645,21 @@ mef.001
     ##  Spearman's rank correlation rho
     ## 
     ## data:  data.string.x and data.string.y
-    ## S = 628, p-value = 0.000388
+    ## S = 630, p-value = 0.0003984
     ## alternative hypothesis: true rho is not equal to 0
     ## sample estimates:
     ##       rho 
-    ## 0.6897233 
+    ## 0.6887352 
     ## 
     ## 
     ## $beta.t
-    ## [1] 0.4044911
+    ## [1] 0.40976
     ## 
     ## $per.bias
-    ## [1] 22.85705
+    ## [1] 22.70046
     ## 
     ## $coeff.var
-    ## [1] 21.86781
+    ## [1] 21.99549
     ## 
     ## $plot
 
@@ -559,18 +683,18 @@ mef.01
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -32.564  -2.851   0.934   7.755  22.076 
+    ## -32.649  -2.905   0.878   7.645  22.297 
     ## 
     ## Coefficients:
     ##               Estimate Std. Error t value    Pr(>|t|)    
-    ## (Intercept)    18.8134     5.3948   3.487      0.0022 ** 
-    ## data.string.x   0.8039     0.1027   7.825 0.000000117 ***
+    ## (Intercept)    18.9711     5.4371   3.489     0.00219 ** 
+    ## data.string.x   0.8021     0.1037   7.733 0.000000141 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 14.26 on 21 degrees of freedom
-    ## Multiple R-squared:  0.7446, Adjusted R-squared:  0.7325 
-    ## F-statistic: 61.23 on 1 and 21 DF,  p-value: 0.0000001171
+    ## Residual standard error: 14.39 on 21 degrees of freedom
+    ## Multiple R-squared:  0.7401, Adjusted R-squared:  0.7277 
+    ## F-statistic:  59.8 on 1 and 21 DF,  p-value: 0.0000001413
     ## 
     ## 
     ## $pearson
@@ -578,13 +702,13 @@ mef.01
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 7.8253, df = 21, p-value = 0.0000001171
+    ## t = 7.7329, df = 21, p-value = 0.0000001413
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.6995462 0.9405659
+    ##  0.6942861 0.9393749
     ## sample estimates:
     ##       cor 
-    ## 0.8629212 
+    ## 0.8602862 
     ## 
     ## 
     ## $spearman
@@ -600,13 +724,13 @@ mef.01
     ## 
     ## 
     ## $beta.t
-    ## [1] 0.0701064
+    ## [1] 0.07015903
     ## 
     ## $per.bias
-    ## [1] -19.60604
+    ## [1] -19.79059
     ## 
     ## $coeff.var
-    ## [1] 12.77914
+    ## [1] 12.93174
     ## 
     ## $plot
 
@@ -634,18 +758,18 @@ mef.05
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -22.754  -5.424   1.832   7.021  15.238 
+    ## -22.660  -5.341   1.958   6.462  15.363 
     ## 
     ## Coefficients:
     ##               Estimate Std. Error t value        Pr(>|t|)    
-    ## (Intercept)    4.39083    2.81077   1.562           0.133    
-    ## data.string.x  0.85091    0.06972  12.205 0.0000000000532 ***
+    ## (Intercept)    4.26495    2.80053   1.523           0.143    
+    ## data.string.x  0.85202    0.06936  12.285 0.0000000000472 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 10.16 on 21 degrees of freedom
-    ## Multiple R-squared:  0.8764, Adjusted R-squared:  0.8706 
-    ## F-statistic:   149 on 1 and 21 DF,  p-value: 0.00000000005324
+    ## Residual standard error: 10.1 on 21 degrees of freedom
+    ## Multiple R-squared:  0.8778, Adjusted R-squared:  0.872 
+    ## F-statistic: 150.9 on 1 and 21 DF,  p-value: 0.00000000004719
     ## 
     ## 
     ## $pearson
@@ -653,13 +777,13 @@ mef.05
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 12.205, df = 21, p-value = 0.00000000005324
+    ## t = 12.285, df = 21, p-value = 0.00000000004719
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.8532511 0.9729345
+    ##  0.8549021 0.9732585
     ## sample estimates:
     ##       cor 
-    ## 0.9361856 
+    ## 0.9369353 
     ## 
     ## 
     ## $spearman
@@ -675,13 +799,13 @@ mef.05
     ## 
     ## 
     ## $beta.t
-    ## [1] 0.04439049
+    ## [1] 0.04482393
     ## 
     ## $per.bias
-    ## [1] -14.90896
+    ## [1] -14.79826
     ## 
     ## $coeff.var
-    ## [1] 8.193344
+    ## [1] 8.140131
     ## 
     ## $plot
 
@@ -705,18 +829,18 @@ mef.1
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -14.9337  -4.1843  -0.1966   3.7998  17.1367 
+    ## -14.9107  -4.1638  -0.1698   3.8249  17.1635 
     ## 
     ## Coefficients:
     ##               Estimate Std. Error t value         Pr(>|t|)    
-    ## (Intercept)    4.70494    2.25201   2.089            0.049 *  
-    ## data.string.x  0.94986    0.06457  14.711 0.00000000000156 ***
+    ## (Intercept)    4.67813    2.25130   2.078           0.0502 .  
+    ## data.string.x  0.95010    0.06453  14.723 0.00000000000154 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 8.866 on 21 degrees of freedom
-    ## Multiple R-squared:  0.9115, Adjusted R-squared:  0.9073 
-    ## F-statistic: 216.4 on 1 and 21 DF,  p-value: 0.000000000001565
+    ## Residual standard error: 8.859 on 21 degrees of freedom
+    ## Multiple R-squared:  0.9117, Adjusted R-squared:  0.9075 
+    ## F-statistic: 216.8 on 1 and 21 DF,  p-value: 0.00000000000154
     ## 
     ## 
     ## $pearson
@@ -724,13 +848,13 @@ mef.1
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 14.711, df = 21, p-value = 0.000000000001565
+    ## t = 14.723, df = 21, p-value = 0.00000000000154
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.8946287 0.9809135
+    ##  0.8947867 0.9809434
     ## sample estimates:
     ##       cor 
-    ## 0.9547498 
+    ## 0.9548198 
     ## 
     ## 
     ## $spearman
@@ -746,13 +870,13 @@ mef.1
     ## 
     ## 
     ## $beta.t
-    ## [1] 0.4460584
+    ## [1] 0.447949
     ## 
     ## $per.bias
-    ## [1] -5.01428
+    ## [1] -4.990287
     ## 
     ## $coeff.var
-    ## [1] 6.797615
+    ## [1] 6.791979
     ## 
     ## $plot
 
@@ -776,18 +900,18 @@ mef.10
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -12.865  -3.993  -1.948   2.909  15.851 
+    ## -12.824  -3.896  -1.956   2.918  15.945 
     ## 
     ## Coefficients:
     ##               Estimate Std. Error t value          Pr(>|t|)    
-    ## (Intercept)    4.83928    1.96862   2.458            0.0227 *  
-    ## data.string.x  1.00122    0.06288  15.923 0.000000000000338 ***
+    ## (Intercept)    4.74129    1.96068   2.418            0.0248 *  
+    ## data.string.x  1.00253    0.06259  16.017 0.000000000000302 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 8.297 on 21 degrees of freedom
-    ## Multiple R-squared:  0.9235, Adjusted R-squared:  0.9199 
-    ## F-statistic: 253.6 on 1 and 21 DF,  p-value: 0.0000000000003381
+    ## Residual standard error: 8.252 on 21 degrees of freedom
+    ## Multiple R-squared:  0.9243, Adjusted R-squared:  0.9207 
+    ## F-statistic: 256.6 on 1 and 21 DF,  p-value: 0.0000000000003015
     ## 
     ## 
     ## $pearson
@@ -795,13 +919,13 @@ mef.10
     ##  Pearson's product-moment correlation
     ## 
     ## data:  data.string.x and data.string.y
-    ## t = 15.923, df = 21, p-value = 0.000000000000338
+    ## t = 16.017, df = 21, p-value = 0.0000000000003015
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.9087863 0.9835784
+    ##  0.9097649 0.9837614
     ## sample estimates:
     ##       cor 
-    ## 0.9609959 
+    ## 0.9614256 
     ## 
     ## 
     ## $spearman
@@ -809,21 +933,21 @@ mef.10
     ##  Spearman's rank correlation rho
     ## 
     ## data:  data.string.x and data.string.y
-    ## S = 828.94, p-value = 0.003016
+    ## S = 810.55, p-value = 0.002498
     ## alternative hypothesis: true rho is not equal to 0
     ## sample estimates:
     ##       rho 
-    ## 0.5904454 
+    ## 0.5995292 
     ## 
     ## 
     ## $beta.t
-    ## [1] 0.9847594
+    ## [1] 0.9681302
     ## 
     ## $per.bias
-    ## [1] 0.1215481
+    ## [1] 0.2530688
     ## 
     ## $coeff.var
-    ## [1] 6.280042
+    ## [1] 6.243239
     ## 
     ## $plot
 
@@ -922,9 +1046,11 @@ mefenoxam_ec50 <- plug_EC("mefenoxam")
 ethaboxam_ec50 <- plug_EC("ethaboxam")
 
 ec50_cor <- rbind.data.frame(ethaboxam_ec50, mefenoxam_ec50)
+dim(ec50_cor)
 
 # not sure why one of the isolates had duplicates but they did, so this code will find duplicates in the absolute ec50s and delete the entire row. 
 ec50_cor <- ec50_cor[-which(duplicated(ec50_cor$absolute)),] 
+dim(ec50_cor)
 ```
 
 Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam on both poison plate and optical density method.
@@ -934,7 +1060,7 @@ Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam o
 | AR\_127.S.2.3.A  | Pythium irregulare                  | ethaboxam | optical\_density |  0.6017397|  0.4608413|  0.3258476|  0.2118367|
 | AR\_127.S.2.3.A  | Pythium irregulare                  | ethaboxam | poison\_plate    |  0.6474189|  0.0242181|  0.7462384|  0.1600082|
 | AR\_127.S.2.3.A  | Pythium irregulare                  | mefenoxam | optical\_density |  0.1831292|  0.0722302|  0.1036954|  0.0178995|
-| AR\_127.S.2.3.A  | Pythium irregulare                  | mefenoxam | poison\_plate    |  0.1259046|  0.0503855|  0.1228201|  0.0557412|
+| AR\_127.S.2.3.A  | Pythium irregulare                  | mefenoxam | poison\_plate    |  0.1259047|  0.0503855|  0.1228202|  0.0557411|
 | AR\_262.S.1.6.A  | Pythium spinosum                    | ethaboxam | optical\_density |  0.4890281|  0.0532135|  0.4472674|  0.0672784|
 | AR\_262.S.1.6.A  | Pythium spinosum                    | ethaboxam | poison\_plate    |  0.2093399|  0.0147487|  0.1991737|  0.0172343|
 | ARS\_284.S1.4.A  | Pythium lutarium                    | ethaboxam | optical\_density |  0.2669444|  0.0983561|  0.2488793|  0.0977931|
@@ -944,11 +1070,13 @@ Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam o
 | IASO\_10-37.8RT  | Pythium aff. dissotocum             | ethaboxam | optical\_density |  1.1413192|  0.3019554|  1.0115718|  0.2570090|
 | IASO\_10-37.8RT  | Pythium aff. dissotocum             | ethaboxam | poison\_plate    |  1.0220161|  0.6068654|  1.0072584|  0.5928676|
 | IASO\_10-38.14RT | Pythium aff. dissotocum             | ethaboxam | optical\_density |  1.0125252|  0.2669542|  0.9121016|  0.1950198|
-| IASO\_10-38.14RT | Pythium aff. dissotocum             | ethaboxam | poison\_plate    |  1.7250786|  0.2861206|  1.8877662|  0.3800344|
-| IASO\_10-39.16rt | Pythium aff. dissotocum             | ethaboxam | optical\_density |  0.6248467|  0.0759800|  0.5562301|  0.0206426|
-| IASO\_10-39.16rt | Pythium aff. dissotocum             | ethaboxam | poison\_plate    |  1.6056028|  0.1531086|  1.7370847|  0.1606027|
-| IASO\_6-10.15h   | Pythium oopapillum                  | ethaboxam | optical\_density |  0.5136203|  0.0286944|  0.4836774|  0.0102900|
-| IASO\_6-10.15h   | Pythium oopapillum                  | ethaboxam | poison\_plate    |  1.1130479|  0.2173577|  1.0919763|  0.2239991|
+| IASO\_10-38.14RT | Pythium aff. dissotocum             | ethaboxam | poison\_plate    |  1.7250785|  0.2861205|  1.8877660|  0.3800343|
+| IASO\_10-39.16RT | Pythium aff. dissotocum             | ethaboxam | optical\_density |  0.6248467|  0.0759800|  0.5562301|  0.0206426|
+| IASO\_10-39.16RT | Pythium aff. dissotocum             | ethaboxam | poison\_plate    |  1.6056028|  0.1531086|  1.7370847|  0.1606027|
+| IASO\_6-10.15H   | Pythium oopapillum                  | ethaboxam | optical\_density |  0.5136203|  0.0286944|  0.4836774|  0.0102900|
+| IASO\_6-10.15H   | Pythium oopapillum                  | ethaboxam | poison\_plate    |  1.1130479|  0.2173577|  1.0919763|  0.2239991|
+| IASO\_6-10.15H   | Pythium oopapillum                  | mefenoxam | optical\_density |  0.2521354|  0.0684946|  0.2051422|  0.0498267|
+| IASO\_6-10.15H   | Pythium oopapillum                  | mefenoxam | poison\_plate    |  0.1447404|  0.1073336|  0.1252434|  0.0924627|
 | ILSO\_1-31       | Pythium irregulare                  | ethaboxam | optical\_density |  0.8616940|  0.1247902|  0.8372427|  0.0556342|
 | ILSO\_1-31       | Pythium irregulare                  | ethaboxam | poison\_plate    |  0.8058171|  0.0387544|  1.0671747|  0.0765512|
 | ILSO\_3-48C      | Pythium irregulare                  | ethaboxam | optical\_density |  0.9968918|  0.2276545|  0.5450930|  0.1574642|
@@ -978,7 +1106,7 @@ Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam o
 | MISO\_5-19H      | Pythium glomeratum                  | ethaboxam | optical\_density |  1.3033651|  0.3326300|  0.9839949|  0.2931130|
 | MISO\_5-19H      | Pythium glomeratum                  | ethaboxam | poison\_plate    |  1.1133215|  0.0441768|  1.1914970|  0.0877672|
 | MISO\_8-10       | Pythium ultimum var. ultimum        | ethaboxam | optical\_density |  0.7494623|  0.2384325|  0.6596120|  0.2148583|
-| MISO\_8-10       | Pythium ultimum var. ultimum        | ethaboxam | poison\_plate    |  1.2705559|  0.0327570|  1.3791302|  0.0529770|
+| MISO\_8-10       | Pythium ultimum var. ultimum        | ethaboxam | poison\_plate    |  1.2705569|  0.0327597|  1.3791427|  0.0529921|
 | NDSO\_1-42       | Pythium sylvaticum                  | ethaboxam | optical\_density |  0.5083377|  0.0455087|  0.4342847|  0.0397514|
 | NDSO\_1-42       | Pythium sylvaticum                  | ethaboxam | poison\_plate    |  0.5029008|  0.0315540|  0.5163838|  0.0454677|
 | NDSO\_1-42       | Pythium sylvaticum                  | mefenoxam | optical\_density |  0.0843794|  0.0395403|  0.0776105|  0.0309785|
@@ -1005,8 +1133,6 @@ Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam o
 | C-SDSO2\_5-35    | Pythium intermedium                 | mefenoxam | poison\_plate    |  0.2039187|  0.0848682|  0.1791958|  0.0740958|
 | IASO\_3-41.17    | Phytophthora sojae                  | mefenoxam | optical\_density |  0.0564770|  0.0357976|  0.0646445|  0.0374231|
 | IASO\_3-41.17    | Phytophthora sojae                  | mefenoxam | poison\_plate    |  0.0193404|  0.0062906|  0.0193835|  0.0063338|
-| IASO\_6-10.15H   | Pythium oopapillum                  | mefenoxam | optical\_density |  0.2521354|  0.0684946|  0.2051422|  0.0498267|
-| IASO\_6-10.15H   | Pythium oopapillum                  | mefenoxam | poison\_plate    |  0.1369200|  0.0624607|  0.1212678|  0.0535314|
 | ILSO\_3-21A      | Pythium ultimum var. sporangiiferum | mefenoxam | optical\_density |  0.0171647|  0.0110661|  0.0164300|  0.0103643|
 | ILSO\_3-21A      | Pythium ultimum var. sporangiiferum | mefenoxam | poison\_plate    |  0.0444185|  0.0319651|  0.0486010|  0.0361461|
 | INSO\_3-10       | Pythium pleroticum                  | mefenoxam | optical\_density |  0.0354960|  0.0029223|  0.0307489|  0.0010692|
@@ -1024,7 +1150,7 @@ Table of EC50 values for every isolate tested for both mefenoxam and ethaboxam o
 | V-SDSO2\_1-53    | Phytophthora sojae                  | mefenoxam | optical\_density |  0.0846261|  0.0036287|  0.0807847|  0.0015759|
 | V-SDSO2\_1-53    | Phytophthora sojae                  | mefenoxam | poison\_plate    |  0.0525604|  0.0387617|  0.0529119|  0.0391127|
 
-Lets do an ANOVA for each chemistry and the effect of method. We have log transformed these data for homogeneity of variance.
+Lets do an ANOVA for each chemistry and the effect of method.
 
 model 1: method as fixed effect and isolate as random effect
 
@@ -1035,26 +1161,26 @@ lm_mef <- lmer(absolute ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "mef
 hist(residuals(lm_mef)) # not normally distributed residuals 
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-2-1.png)
 
 ``` r
 qqnorm(resid(lm_mef), main = "not log transformed"); qqline(resid(lm_mef))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-2.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-2-2.png)
 
 ``` r
 lm_mef <- lmer(log(absolute) ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "mefenoxam",])
 hist(residuals(lm_mef)) # log transformation is good
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-3.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-2-3.png)
 
 ``` r
 qqnorm(resid(lm_mef), main = "log transformed"); qqline(resid(lm_mef))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-4.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-2-4.png)
 
 ``` r
 lmerTest::anova(lm_mef, test.statistic="F", type = 2) # using type II ANOVA for unbalanced data. Some isolates have more technical replicates than others. So the mean over all isolates is different.  
@@ -1063,20 +1189,20 @@ lmerTest::anova(lm_mef, test.statistic="F", type = 2) # using type II ANOVA for 
     ## Analysis of Variance Table of type II  with  Satterthwaite 
     ## approximation for degrees of freedom
     ##         Sum Sq Mean Sq NumDF  DenDF F.value Pr(>F)
-    ## method 0.71795 0.71795     1 84.159  1.1889 0.2787
+    ## method 0.69902 0.69902     1 83.141  1.1442 0.2879
 
 ``` r
 plot(lm_mef, type = c("p", "smooth"), id = 0.05) # regression diagnostics
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-5.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-2-5.png)
 
 ``` r
 lsmeans_mef <- lsmeans::lsmeans(lm_mef, "method")
 plot(lsmeans_mef)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-6.png) This is what we expected, no significant differnces for the method.
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-2-6.png) This is what we expected, no significant differnces for the method.
 
 Lets do the same for ethaboxam.
 
@@ -1085,13 +1211,26 @@ lm_eth <- lmer(absolute ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "eth
 hist(residuals(lm_eth)) # not normally distributed residuals 
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-3-1.png)
 
 ``` r
 qqnorm(resid(lm_eth), main = "not log transformed"); qqline(resid(lm_eth))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-2.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-3-2.png)
+
+``` r
+lm_eth <- lmer(log(absolute) ~ method + (1|is), data = ec50_cor[ec50_cor$chem == "ethaboxam",])
+hist(residuals(lm_eth)) # not normally distributed residuals 
+```
+
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-3-3.png)
+
+``` r
+qqnorm(resid(lm_eth), main = "log transformed"); qqline(resid(lm_eth))
+```
+
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-3-4.png)
 
 ``` r
 lmerTest::anova(lm_eth, test.statistic="F", type = 2) # using type II ANOVA for unbalanced data. Some isolates have more technical replicates than others. So the mean over all isolates is different.  
@@ -1099,21 +1238,21 @@ lmerTest::anova(lm_eth, test.statistic="F", type = 2) # using type II ANOVA for 
 
     ## Analysis of Variance Table of type II  with  Satterthwaite 
     ## approximation for degrees of freedom
-    ##         Sum Sq Mean Sq NumDF  DenDF F.value Pr(>F)
-    ## method 0.10793 0.10793     1 82.088  1.1123 0.2947
+    ##          Sum Sq  Mean Sq NumDF  DenDF F.value Pr(>F)
+    ## method 0.079644 0.079644     1 82.253 0.17557 0.6763
 
 ``` r
 plot(lm_eth, type = c("p", "smooth"), id = 0.05)# regression diagnostics
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-3.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-3-5.png)
 
 ``` r
 lsmeans_eth <- lsmeans::lsmeans(lm_eth, "method")
 plot(lsmeans_eth)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-4.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-3-6.png)
 
 Now lets put chemistry in as a fixed effect and fit the interaction bewtween chemistry and method.
 
@@ -1124,13 +1263,13 @@ lm3 <- lm(log(absolute) ~ is * chem * method, data = ec50_cor)
 hist(residuals(lm3)) # log transformation is good
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-1.png)
 
 ``` r
 qqnorm(resid(lm3), main = "log transformed"); qqline(resid(lm3))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-2.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-4-2.png)
 
 ``` r
 anova(lm3)
@@ -1139,30 +1278,38 @@ anova(lm3)
     ## Analysis of Variance Table
     ## 
     ## Response: log(absolute)
-    ##                 Df Sum Sq Mean Sq  F value                Pr(>F)    
-    ## is              38 365.52   9.619  17.6018 < 0.00000000000000022 ***
-    ## chem             1  64.77  64.770 118.5218 < 0.00000000000000022 ***
-    ## method           1   0.76   0.758   1.3869              0.241245    
-    ## is:chem          6  11.28   1.880   3.4411              0.003579 ** 
-    ## is:method       38  20.44   0.538   0.9843              0.505606    
-    ## chem:method      1   0.24   0.241   0.4403              0.508217    
-    ## is:chem:method   6   0.91   0.152   0.2778              0.946444    
-    ## Residuals      121  66.12   0.546                                   
+    ##                 Df Sum Sq Mean Sq  F value               Pr(>F)    
+    ## is              37 360.33   9.739  17.6824 < 0.0000000000000002 ***
+    ## chem             1  69.51  69.506 126.2004 < 0.0000000000000002 ***
+    ## method           1   0.72   0.717   1.3022              0.25609    
+    ## is:chem          7  11.59   1.655   3.0050              0.00607 ** 
+    ## is:method       37  19.05   0.515   0.9349              0.58070    
+    ## chem:method      1   0.74   0.736   1.3368              0.24990    
+    ## is:chem:method   7   1.81   0.259   0.4700              0.85463    
+    ## Residuals      120  66.09   0.551                                  
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 ``` r
-plot(lm3)
+#Plotting diagnostic plots for fit1 model
+par(mfrow=c(2,2)) # optional layout 
+plot(lm3)# diagnostic plotspar
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-3.png)![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-4.png)![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-5.png)![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-6.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-1.png)
+
+``` r
+(mfrow=c(1,1)) # optional layout
+```
+
+    ## [1] 1 1
 
 ``` r
 lsmeans3 <- lsmeans::lsmeans(lm3, c("is", "chem", "method"))
 plot(lsmeans3)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-6-7.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-5-2.png)
 
 Lets do correlation analysis between the two methods separated by chemistry.
 
@@ -1180,81 +1327,87 @@ summary(cor_mef)
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -0.69793 -0.08873  0.00269  0.05529  0.91905 
+    ## -0.69853 -0.08912  0.00233  0.05494  0.91848 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value    Pr(>|t|)    
-    ## (Intercept) -0.07988    0.07755  -1.030       0.317    
-    ## mean.abs.od  1.57027    0.21667   7.247 0.000000972 ***
+    ## (Intercept) -0.07954    0.07748  -1.027       0.318    
+    ## mean.abs.od  1.57050    0.21647   7.255 0.000000958 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 0.2866 on 18 degrees of freedom
-    ## Multiple R-squared:  0.7448, Adjusted R-squared:  0.7306 
-    ## F-statistic: 52.52 on 1 and 18 DF,  p-value: 0.000000972
+    ## Residual standard error: 0.2863 on 18 degrees of freedom
+    ## Multiple R-squared:  0.7452, Adjusted R-squared:  0.731 
+    ## F-statistic: 52.63 on 1 and 18 DF,  p-value: 0.0000009579
 
 ``` r
 par(mfrow = c(2,2))
 plot(cor_mef)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-7-1.png)
+
+``` r
+(mfrow=c(1,1)) # optional layout
+```
+
+    ## [1] 1 1
 
 ``` r
 ttest(cor_mef, 1, 0) # tests if intercept is significantly different than 0
 ```
 
-    ## [1] 0.3166105
+    ## [1] 0.3182124
 
 ``` r
 ttest(cor_mef, 2, 1) # tests if slope (beta) is significantly different than 1
 ```
 
-    ## [1] 0.01692273
+    ## [1] 0.01679858
 
 ``` r
 (summary(cor_mef)[[4]][2] - 1)*100 #percent Bias
 ```
 
-    ## [1] 57.02711
+    ## [1] 57.04972
 
 There is a significant linear relationship between the mean absolute EC50 using either method. Since it looked like there were some points with a bit of leverage we will use spearman's correlation to test the significance of the correlation.We will also look at the spearman:pearson correlation ratio to see if the correlation is more monotonic or linear.
 
 ``` r
-spear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
+spear.cor.mef <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
          EC50$mean.abs.od[EC50$chem == "mefenoxam"], 
          method = "spearman")
-pear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
+pear.cor.mef <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
          EC50$mean.abs.od[EC50$chem == "mefenoxam"], 
          method = "pearson")
-spear.cor
+spear.cor.mef
 ```
 
     ## 
     ##  Spearman's rank correlation rho
     ## 
     ## data:  EC50$mean.abs.pp[EC50$chem == "mefenoxam"] and EC50$mean.abs.od[EC50$chem == "mefenoxam"]
-    ## S = 358, p-value = 0.0003757
+    ## S = 348, p-value = 0.0003031
     ## alternative hypothesis: true rho is not equal to 0
     ## sample estimates:
     ##       rho 
-    ## 0.7308271
+    ## 0.7383459
 
 ``` r
-pear.cor
+pear.cor.mef
 ```
 
     ## 
     ##  Pearson's product-moment correlation
     ## 
     ## data:  EC50$mean.abs.pp[EC50$chem == "mefenoxam"] and EC50$mean.abs.od[EC50$chem == "mefenoxam"]
-    ## t = 7.2471, df = 18, p-value = 0.000000972
+    ## t = 7.2549, df = 18, p-value = 0.0000009579
     ## alternative hypothesis: true correlation is not equal to 0
     ## 95 percent confidence interval:
-    ##  0.6802565 0.9447289
+    ##  0.6807537 0.9448283
     ## sample estimates:
     ##       cor 
-    ## 0.8629927
+    ## 0.8632288
 
 Since the spearman correlation coeficient is lower than the pearson coefficient, this indicates we have more of a linear relationship than a monotonic one. This is a good thing because we would expect a perfect linear relationship between the methods.
 
@@ -1288,7 +1441,7 @@ par(mfrow = c(2,2))
 plot(cor_eth)
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 ``` r
 ttest(cor_eth, 1, 0) # tests if intercept is significantly different than 0
@@ -1300,7 +1453,7 @@ ttest(cor_eth, 1, 0) # tests if intercept is significantly different than 0
 ttest(cor_eth, 2, 1) # tests if slope (beta) is significantly different than 1
 ```
 
-    ## [1] 0.4931334
+    ## [1] 0.4931335
 
 ``` r
 (summary(cor_eth)[[4]][2] - 1)*100 #percent Bias
@@ -1311,13 +1464,13 @@ ttest(cor_eth, 2, 1) # tests if slope (beta) is significantly different than 1
 There is a significant linear relationship between the mean absolute EC50 using either method. Since it looked like there were some points with a bit of leverage we will use spearman's correlation to test the significance of the correlation.
 
 ``` r
-spear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
+spear.cor.eth <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
          EC50$mean.abs.od[EC50$chem == "ethaboxam"], 
          method = "spearman")
-pear.cor <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
+pear.cor.eth <- cor.test(EC50$mean.abs.pp[EC50$chem == "ethaboxam"], 
          EC50$mean.abs.od[EC50$chem == "ethaboxam"], 
          method = "pearson")
-spear.cor
+spear.cor.eth
 ```
 
     ## 
@@ -1331,7 +1484,7 @@ spear.cor
     ## 0.8352137
 
 ``` r
-pear.cor
+pear.cor.eth
 ```
 
     ## 
@@ -1343,10 +1496,44 @@ pear.cor
     ## 95 percent confidence interval:
     ##  0.5012888 0.8783242
     ## sample estimates:
-    ##       cor 
-    ## 0.7441461
+    ##      cor 
+    ## 0.744146
 
-Since the spearman correlation coeficient is higher than the pearson coefficient, this indicates we have more of a monotonic relationship than a linear one. This is ok, but we would like to see it flipped around.
+``` r
+spear.cor.mef <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
+         EC50$mean.abs.od[EC50$chem == "mefenoxam"], 
+         method = "spearman")
+pear.cor.mef <- cor.test(EC50$mean.abs.pp[EC50$chem == "mefenoxam"], 
+         EC50$mean.abs.od[EC50$chem == "mefenoxam"], 
+         method = "pearson")
+spear.cor.mef
+```
+
+    ## 
+    ##  Spearman's rank correlation rho
+    ## 
+    ## data:  EC50$mean.abs.pp[EC50$chem == "mefenoxam"] and EC50$mean.abs.od[EC50$chem == "mefenoxam"]
+    ## S = 348, p-value = 0.0003031
+    ## alternative hypothesis: true rho is not equal to 0
+    ## sample estimates:
+    ##       rho 
+    ## 0.7383459
+
+``` r
+pear.cor.mef
+```
+
+    ## 
+    ##  Pearson's product-moment correlation
+    ## 
+    ## data:  EC50$mean.abs.pp[EC50$chem == "mefenoxam"] and EC50$mean.abs.od[EC50$chem == "mefenoxam"]
+    ## t = 7.2549, df = 18, p-value = 0.0000009579
+    ## alternative hypothesis: true correlation is not equal to 0
+    ## 95 percent confidence interval:
+    ##  0.6807537 0.9448283
+    ## sample estimates:
+    ##       cor 
+    ## 0.8632288
 
 ``` r
 EC50_spec <- ddply(EC50, c("species_od","chem", "method"), 
@@ -1390,20 +1577,20 @@ summary(lm(mean.abs.pp ~ mean.abs.od, data = EC50_spec))
     ## 
     ## Residuals:
     ##      Min       1Q   Median       3Q      Max 
-    ## -0.36128 -0.11452 -0.02151  0.06983  0.50524 
+    ## -0.36124 -0.11458 -0.02171  0.06966  0.50522 
     ## 
     ## Coefficients:
     ##             Estimate Std. Error t value     Pr(>|t|)    
-    ## (Intercept) -0.04456    0.07842  -0.568        0.577    
-    ## mean.abs.od  1.16557    0.12007   9.707 0.0000000239 ***
+    ## (Intercept) -0.04433    0.07840  -0.565        0.579    
+    ## mean.abs.od  1.16536    0.12005   9.707 0.0000000239 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## Residual standard error: 0.2351 on 17 degrees of freedom
     ## Multiple R-squared:  0.8472, Adjusted R-squared:  0.8382 
-    ## F-statistic: 94.23 on 1 and 17 DF,  p-value: 0.00000002389
+    ## F-statistic: 94.23 on 1 and 17 DF,  p-value: 0.0000000239
 
-Based on the above analysis, we will select the relative growth at
+Based on the above analysis, we will select the relative growth at 0.5
 
 ``` r
 mef.cor$chem <- "Mefenoxam"
@@ -1413,53 +1600,115 @@ EC50$chem2 <- factor(EC50$chem, labels = c("Ethaboxam", "Mefenoxam"))
 length(levels(cor.plot.relgrowth$is))
 ```
 
-    ## [1] 46
+    ## [1] 45
+
+``` r
+label.names.p <- c("Phytophthora sansomeana", 
+                 "Phytophthora sojae", 
+                                 "Phytopythium litorale",
+                                 "Phytopythium megacarpum", 
+                                 "Pythium aff. dissotocum", 
+                                 "Pythium aphanidermatum", 
+                                 "Pythium glomeratum", 
+                                 "Pythium intermedium",
+                                 "Pythium irregulare",
+                                 "Pythium lutarium",
+                                 "Pythium oopapillum",
+                                 "Pythium perplexum",
+                                 "Pythium pleroticum",
+                                 "Pythium spinosum",
+                                 "Pythium sylvaticum",
+                                 "Pythium torulosum",
+                                 "Pythium ultimum", 
+                                 "Pythium ultimum var. sporangiiferum",
+                                 "Pythium ultimum var. ultimum")
+
+shape.p <- c(4,4,18,18,19,8,15,17,17,19,19,10,7,17,17,19,15,15,15)
+color.names.p <- rep(pal_npg("nrc")(10),3)
+labels <- data.frame(label.names.p, shape.p, color.names.p[1:19])
+colnames(labels) <- c("Species", "Shape", "Color")
+
+label.names.p1 <- c("Phytophthora sansomeana",
+                    "Pythium aff. dissotocum",
+                    "Pythium lutarium",
+                    "Pythium oopapillum",
+                    "Pythium irregulare",
+                    "Pythium spinosum",
+                    "Pythium sylvaticum",
+                    "Pythium glomeratum",
+                    "Pythium ultimum var. ultimum",
+                    "Pythium perplexum",
+                    "Phytophthora sojae",
+                    "Pythium pleroticum",
+                    "Pythium ultimum var. sporangiiferum",
+                    "Phytopythium litorale",
+                    "Pythium intermedium")
+shapes.p1 <- labels$Shape[labels$Species %in% label.names.p1]
+color.names.p1 <- labels$Color[labels$Species %in% label.names.p1]
+labels$EC50.plot <- labels$Species %in% levels(EC50$species_od)
+```
 
 ``` r
  p <- ggplot(cor.plot.relgrowth, aes(y = odrelgrowth, x = ppmeanrelgrowth)) +
-    geom_point(aes(color = factor(species))) +
-    guides(colour = guide_legend(title = "Species")) +
+    geom_point(aes(shape = species, color = species), size = 4) +
     scale_y_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
     scale_x_continuous(limits = c(0, 125), breaks = c(0, 25, 50, 75, 100, 125)) +
      geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x, fullrange = TRUE) +
   stat_poly_eq(formula = y ~ x, 
                aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~~~")), 
-               parse = TRUE) +
+               parse = TRUE, size = 5) +
     xlab("% Relative Growth, Poison Plate") + 
     ylab("% Relative Growth, Optical Density") + 
     theme_classic() +
-    theme(axis.text.x = element_text(size = 10, face = "bold"),
-          axis.text.y = element_text(size = 10, face = "bold"),
-          axis.title.x = element_text(size = 10, face = "bold"),
-          axis.title.y = element_text(size = 10, face = "bold"),
+    scale_shape_manual(name = "Species", 
+                      labels = as.character(labels$Species[labels$Species %in% levels(cor.plot.relgrowth$species)]),
+                      values = labels$Shape[labels$Species %in% levels(cor.plot.relgrowth$species)]) +
+    scale_colour_manual(name = "Species",
+                      labels = as.character(labels$Species[labels$Species %in% levels(cor.plot.relgrowth$species)]),
+                      values = as.character(labels$Color[labels$Species %in% levels(cor.plot.relgrowth$species)])) +   
+    theme(axis.text.x = element_text(size = 15, face = "bold", family = "serif"),
+          axis.text.y = element_text(size = 15, face = "bold", family = "serif"),
+          axis.title.x = element_text(size = 15, face = "bold", family = "serif"),
+          axis.title.y = element_text(size = 15, face = "bold", family = "serif"),
           axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
           axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
-          legend.text = element_text(size = 6, face = "bold.italic"),
+          legend.text = element_text(size = 10, face = "bold.italic", family = "serif"),
           legend.key = element_blank(),
-          legend.title = element_text(size = 10, face="bold"),
+          legend.title = element_text(size = 10, face="bold", family = "serif"),
           legend.position = "bottom", 
-          strip.text.x = element_text(size = 15, face = "bold")) + 
+          strip.text.x = element_text(size = 15, face = "bold", family = "serif")) + 
    facet_wrap(~chem)
+
+
+EC50 <- EC50[order(as.character(EC50$species_pp)),]
+x <- levels(EC50$species_pp)
+x <- x[order(levels(EC50$species_pp))]
+
 p1 <- ggplot(EC50, aes(mean.abs.pp, mean.abs.od)) + 
-  geom_point(aes(color = factor(species_od))) +
- geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x, fullrange = TRUE) +
+  geom_point(aes(color = factor(species_pp,levels = x), shape = factor(species_pp,levels = x)), size = 4) +
+  geom_smooth(method = "lm", se=FALSE, color="black", formula = y ~ x, fullrange = TRUE) +
   stat_poly_eq(formula = y ~ x, 
                aes(label = paste(..eq.label.., ..adj.rr.label.., sep = "~~~")), 
-               parse = TRUE) +
-  guides(colour = guide_legend(title = "Species")) +
+               parse = TRUE, size = 5) +
+  scale_shape_manual(name = "Species", 
+                      labels = as.character(labels$Species[labels$Species %in% levels(EC50$species_pp)]),
+                      values = labels$Shape[labels$Species %in% levels(EC50$species_pp)]) +
+    scale_colour_manual(name = "Species",
+                      labels = as.character(labels$Species[labels$Species %in% levels(EC50$species_pp)]),
+                      values = as.character(labels$Color[labels$Species %in% levels(EC50$species_pp)])) + 
   xlab(expression(bold("Poison plate EC"[50]))) + 
   ylab(expression(bold("Optical density EC"[50]))) + 
   theme_classic() + 
-  theme(axis.text.x = element_text(size = 10, face = "bold"),
-        axis.text.y = element_text(size = 10, face = "bold"),
-        axis.title.x = element_text(size = 10, face = "bold"),
-        axis.title.y = element_text(size = 10, face = "bold"),
+  theme(axis.text.x = element_text(size = 15, face = "bold", family = "serif"),
+        axis.text.y = element_text(size = 15, face = "bold", family = "serif"),
+        axis.title.x = element_text(size = 15, face = "bold", family = "serif"),
+        axis.title.y = element_text(size = 15, face = "bold", family = "serif"),
         axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
         axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
-        legend.text = element_text(size = 9, face = "bold.italic"),
+        legend.text = element_text(size = 10, face = "bold.italic", family = "serif"),
         legend.key = element_blank(),
-        legend.title = element_text(size = 10, face="bold"),
-        strip.text.x = element_text(size = 15, face = "bold")) +
+        legend.title = element_text(size = 10, face="bold", family = "serif"),
+        strip.text.x = element_text(size = 15, face = "bold", family = "serif")) +
   facet_wrap(~chem2)
 ```
 
@@ -1479,10 +1728,10 @@ mylegend<-g_legend(p)
 p3 <- grid.arrange(arrangeGrob(p1 + theme(legend.position="none"),
                          p + theme(legend.position="none"),
                          nrow=2),
-             mylegend, nrow=2,heights=c(5, 1))
+             mylegend, nrow=2,heights=c(7, 1))
 ```
 
-![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](MethodCorrelation_files/figure-markdown_github/unnamed-chunk-19-1.png)
 
 ``` r
 print(p3)
@@ -1494,5 +1743,5 @@ print(p3)
     ## 2 2 (2-2,1-1) arrange gtable[guide-box]
 
 ``` r
-ggsave(file="FigureCorrelation.pdf", plot = p3, width = 9, height = 9, dpi = 300)
+#ggsave(file="FigureCorrelation.pdf", plot = p3, width = 12, height = 9, dpi = 300)
 ```
