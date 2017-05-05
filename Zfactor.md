@@ -1,0 +1,745 @@
+Start:
+
+I include this header at the top of all code I write.
+
+``` r
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+# Source: https://gist.github.com/stevenworthington/3178163
+ipak <- function(pkg){
+new.pkg <- pkg[!(pkg %in% installed.packages()[,"Package"])]
+if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+sapply(pkg, require, character.only = TRUE)
+}
+```
+
+### Libraries
+
+``` r
+packages <- c("drc", "lme4", "lsmeans", "plyr", "plotrix", "knitr", "ggplot2", "lmtest", "lmerTest", "Rmisc", "gridExtra", "plotly", "webshot", "ggpmisc", "ggsci","scales")
+ipak(packages)
+```
+
+    ##       drc      lme4   lsmeans      plyr   plotrix     knitr   ggplot2 
+    ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
+    ##    lmtest  lmerTest     Rmisc gridExtra    plotly   webshot   ggpmisc 
+    ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
+    ##     ggsci    scales 
+    ##      TRUE      TRUE
+
+### Read Data
+
+``` r
+ass.qual <- data.frame(read.csv("ass_quality_AllData.csv", na.strings = "na"))
+```
+
+### Z'factor analysis
+
+We are going to use the ass.qual dataset first to follow the assay quality experiment proposed by chai et al 2015.
+
+First lets just look at the dynamic ranges and the standard deviations that we will use to calculate Z factor
+
+``` r
+mef.qual <- ass.qual[ass.qual$fungicide == "mefenoxam",]
+mef.qual$fungicide <- factor(mef.qual$fungicide)
+eth.qual <- ass.qual[ass.qual$fungicide == "ethaboxam",]
+eth.qual$fungicide <- factor(eth.qual$fungicide)
+
+ggplot(eth.qual, aes(column, row)) + 
+  geom_tile(aes(fill = od600)) + 
+  scale_fill_gradient(low = "blue", high = "red") + 
+  theme_classic() +
+  facet_wrap(~daynum*platenum)
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-4-1.png)
+
+``` r
+ggplot(mef.qual, aes(column, row)) + 
+  geom_tile(aes(fill = od600)) + 
+  scale_fill_gradient(low = "blue", high = "red") + 
+  theme_classic() +
+  facet_wrap(~daynum*platenum)
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-4-2.png)
+
+``` r
+levels(ass.qual$fungicide) <- c("Ethaboxam", "Mefenoxam")
+
+qplot(od600, data=ass.qual, geom="density", fill=trt, alpha=I(.5),
+   main="", xlab="Optical Density",
+   ylab="Density") + 
+  facet_wrap(~fungicide) + 
+  theme_classic() +
+  scale_fill_npg() +
+  guides(fill = guide_legend(title = "Treatment", title.position = "top")) +
+  theme(axis.text.x = element_text(size = 15, face = "bold", family = "serif"),
+          axis.text.y = element_text(size = 15, face = "bold", family = "serif"),
+          axis.title.x = element_text(size = 15, face = "bold", family = "serif"),
+          axis.title.y = element_text(size = 15, face = "bold", family = "serif"),
+          axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+          axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'),
+          legend.text = element_text(size = 10, face = "bold", family = "serif"),
+          legend.key = element_blank(),
+          legend.title = element_text(size = 10, face="bold", family = "serif"),
+          legend.position = "right", 
+          strip.text.x = element_text(size = 15, face = "bold", family = "serif"),
+        title = element_text(size = 16, family = "serif"))
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-4-3.png)
+
+``` r
+ass_qual_well <- NULL
+ass_qual_plate <- NULL
+for (day in 1:3){
+  for (plate in 1:3){
+
+    #well to well
+    mean.mef.0 <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "0ppm"])
+    sd.mef.0 <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "0ppm"])
+    mean.mef.10 <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "10ppm"])
+    sd.mef.10 <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "10ppm"])
+    mean.mef.blank <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "blank"])
+    sd.mef.blank <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "blank"])
+    
+   mean.eth.0 <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "0ppm"])
+    sd.eth.0 <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "0ppm"])
+    mean.eth.20 <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "20ppm"])
+    sd.eth.20 <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "20ppm"])
+   mean.eth.blank <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "blank"])
+    sd.eth.blank <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$plate == plate & ass.qual$trt == "blank"])
+    
+    ass_qual_i <- cbind(day, plate, mean.mef.0, sd.mef.0, mean.mef.10, sd.mef.10, mean.mef.blank, sd.mef.blank,
+                        mean.eth.0, sd.eth.0, mean.eth.20, sd.eth.20, mean.eth.blank, sd.eth.blank) 
+    ass_qual_well <- rbind(ass_qual_well, ass_qual_i)
+    
+    
+    
+   
+  }
+  #plate to plate
+    mean.mef.0.plate <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$trt == "0ppm"])
+    sd.mef.0.plate <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$trt == "0ppm"])
+    mean.mef.10.plate <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$trt == "10ppm"])
+    sd.mef.10.plate <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$trt == "10ppm"])
+    mean.mef.blank.plate <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$trt == "blank"])
+    sd.mef.blank.plate <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$day == day & ass.qual$trt == "blank"])
+    
+    mean.eth.0.plate <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$trt == "0ppm"])
+    sd.eth.0.plate <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$trt == "0ppm"])
+    mean.eth.20.plate <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$trt == "20ppm"])
+    sd.eth.20.plate <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$trt == "20ppm"])
+    mean.eth.blank.plate <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$trt == "blank"])
+    sd.eth.blank.plate <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$day == day & ass.qual$trt == "blank"])
+    
+    ass_qual_j <- cbind(day, mean.mef.0.plate, sd.mef.0.plate, mean.mef.10.plate, sd.mef.10.plate, mean.mef.blank.plate,
+                            sd.mef.blank.plate,mean.eth.0.plate, sd.eth.0.plate, mean.eth.20.plate, sd.eth.20.plate, 
+                            mean.eth.blank.plate, sd.eth.blank.plate) 
+    ass_qual_plate <- rbind(ass_qual_plate, ass_qual_j)
+    
+}
+ #day to day 
+    mean.mef.0.day <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$trt == "0ppm"])
+    sd.mef.0.day <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$trt == "0ppm"])
+    mean.mef.10.day <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$trt == "10ppm"])
+    sd.mef.10.day <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$trt == "10ppm"])
+    mean.mef.blank.day <- mean(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$trt == "blank"])
+    sd.mef.blank.day <- sd(ass.qual$od600[ass.qual$fungicide == "mefenoxam" & ass.qual$trt == "blank"])
+    
+    mean.eth.0.day <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$trt == "0ppm"])
+    sd.eth.0.day <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$trt == "0ppm"])
+    mean.eth.20.day <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$trt == "20ppm"])
+    sd.eth.20.day <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$trt == "20ppm"])
+    mean.eth.blank.day <- mean(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$trt == "blank"])
+    sd.eth.blank.day <- sd(ass.qual$od600[ass.qual$fungicide == "ethaboxam" & ass.qual$trt == "blank"])
+    
+    ass_qual_y <- cbind(mean.mef.0.day, sd.mef.0.day, mean.mef.10.day, sd.mef.10.day, mean.mef.blank.day,
+                            sd.mef.blank.day,mean.eth.0.day, sd.eth.0.day, mean.eth.20.day, sd.eth.20.day, 
+                            mean.eth.blank.day, sd.eth.blank.day) 
+    
+#write.csv(ass_qual_y, "ass_qual_day.csv")
+#write.csv(ass_qual_plate, "ass_qual_plate.csv")
+#write.csv(ass_qual_well, "ass_qual_well.csv")
+```
+
+mefenoxam z' scores
+
+``` r
+Z <- function (sdPC, sdNC, mPC, mNC) {1-((3*(sdPC + sdNC))/abs(mPC - mNC))}
+qc.ethaboxam <- ass.qual[ass.qual$fungicide == "Ethaboxam",]
+qc.ethaboxam_day1 <- qc.ethaboxam[qc.ethaboxam$day == 1,]
+qc.ethaboxam_day2 <- qc.ethaboxam[qc.ethaboxam$day == 2,]
+qc.ethaboxam_day3 <- qc.ethaboxam[qc.ethaboxam$day == 3,]
+qc.mefenoxam <- ass.qual[ass.qual$fungicide == "Mefenoxam",]
+qc.mefenoxam_day1 <- qc.mefenoxam[qc.mefenoxam$day == 1,]
+qc.mefenoxam_day2 <- qc.mefenoxam[qc.mefenoxam$day == 2,]
+qc.mefenoxam_day3 <- qc.mefenoxam[qc.mefenoxam$day == 3,]
+
+
+#Mefenoxam Z' factor scores day 1
+
+#well-to-well plate 1
+qc.mefenoxam_plate1 <- qc.mefenoxam_day1[qc.mefenoxam_day1$plate == 1,]
+meanPC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate1_well_day1 <- data.frame("mefenoxam_plate1_well_day1", PC_NC, PC_NTC, NC_NTC);
+names(Z_prime_plate1_well_day1) <- letters[1:4]
+
+#well-to-well plate 2
+qc.mefenoxam_plate2 <- qc.mefenoxam_day1[qc.mefenoxam_day1$plate == 2,]
+meanPC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate2_well_day1 <- data.frame("mefenoxam_plate2_well_day1", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate2_well_day1) <- letters[1:4]
+
+#well-to-well plate 3
+qc.mefenoxam_plate3 <- qc.mefenoxam_day1[qc.mefenoxam_day1$plate == 3,]
+meanPC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate3_well_day1 <- data.frame("mefenoxam_plate3_well_day1", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate3_well_day1) <- letters[1:4]
+
+#plate-to-plate day 1
+meanPC <- mean(qc.mefenoxam_day1$od600[qc.mefenoxam_day1$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_day1$od600[qc.mefenoxam_day1$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_day1$od600[qc.mefenoxam_day1$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_day1$od600[qc.mefenoxam_day1$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_day1$od600[qc.mefenoxam_day1$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_day1$od600[qc.mefenoxam_day1$trt == "blank"])
+  
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate_day1 <- data.frame("mefenoxam_plate_day1", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate_day1) <- letters[1:4]
+
+#Mefenoxam Z' factor scores day 2
+
+#well-to-well plate 1
+qc.mefenoxam_plate1 <- qc.mefenoxam_day2[qc.mefenoxam_day2$plate == 1,]
+meanPC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate1_well_day2 <- data.frame("mefenoxam_plate1_well_day2", PC_NC, PC_NTC, NC_NTC);
+names(Z_prime_plate1_well_day2) <- letters[1:4]
+
+#well-to-well plate 2
+qc.mefenoxam_plate2 <- qc.mefenoxam_day2[qc.mefenoxam_day2$plate == 2,]
+meanPC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate2_well_day2 <- data.frame("mefenoxam_plate2_well_day2", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate2_well_day2) <- letters[1:4]
+
+#well-to-well plate 3
+qc.mefenoxam_plate3 <- qc.mefenoxam_day2[qc.mefenoxam_day2$plate == 3,]
+meanPC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate3_well_day2 <- data.frame("mefenoxam_plate3_well_day2", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate3_well_day2) <- letters[1:4]
+
+#plate-to-plate day 2
+meanPC <- mean(qc.mefenoxam_day2$od600[qc.mefenoxam_day2$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_day2$od600[qc.mefenoxam_day2$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_day2$od600[qc.mefenoxam_day2$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_day2$od600[qc.mefenoxam_day2$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_day2$od600[qc.mefenoxam_day2$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_day2$od600[qc.mefenoxam_day2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate_day2 <- data.frame("mefenoxam_plate_day2", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate_day2) <- letters[1:4]
+
+#Mefenoxam Z' factor scores day 3
+
+#well-to-well plate 1
+qc.mefenoxam_plate1 <- qc.mefenoxam_day3[qc.mefenoxam_day3$plate == 1,]
+meanPC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate1$od600[qc.mefenoxam_plate1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate1_well_day3 <- data.frame("mefenoxam_plate1_well_day3", PC_NC, PC_NTC, NC_NTC);
+names(Z_prime_plate1_well_day3) <- letters[1:4]
+
+#well-to-well plate 2
+qc.mefenoxam_plate2 <- qc.mefenoxam_day3[qc.mefenoxam_day3$plate == 2,]
+meanPC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate2$od600[qc.mefenoxam_plate2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate2_well_day3 <- data.frame("mefenoxam_plate2_well_day3", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate2_well_day3) <- letters[1:4]
+
+#well-to-well plate 3
+qc.mefenoxam_plate3 <- qc.mefenoxam_day3[qc.mefenoxam_day3$plate == 3,]
+meanPC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_plate3$od600[qc.mefenoxam_plate3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate3_well_day3 <- data.frame("mefenoxam_plate3_well_day3", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate3_well_day3) <- letters[1:4]
+
+#plate-to-plate day 2
+meanPC <- mean(qc.mefenoxam_day3$od600[qc.mefenoxam_day3$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam_day3$od600[qc.mefenoxam_day3$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam_day3$od600[qc.mefenoxam_day3$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam_day3$od600[qc.mefenoxam_day3$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam_day3$od600[qc.mefenoxam_day3$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam_day3$od600[qc.mefenoxam_day3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate_day3 <- data.frame("mefenoxam_plate_day3", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate_day3) <- letters[1:4]
+
+#day-to-day 
+meanPC <- mean(qc.mefenoxam$od600[qc.mefenoxam$trt == "10ppm"])
+sdPC <- sd(qc.mefenoxam$od600[qc.mefenoxam$trt == "10ppm"])
+meanNC <- mean(qc.mefenoxam$od600[qc.mefenoxam$trt == "0ppm"])
+sdNC <- sd(qc.mefenoxam$od600[qc.mefenoxam$trt == "0ppm"])
+meanNTC <- mean(qc.mefenoxam$od600[qc.mefenoxam$trt == "blank"])
+sdNTC <- sd(qc.mefenoxam$od600[qc.mefenoxam$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_day <- data.frame("mefenoxam_day", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_day) <- letters[1:4]
+
+#all Z'factors in one table
+
+Zfactor_mef <- rbind.data.frame(Z_prime_plate1_well_day1, 
+                                Z_prime_plate2_well_day1, 
+                                Z_prime_plate3_well_day1,
+                                Z_prime_plate1_well_day2, 
+                                Z_prime_plate2_well_day2, 
+                                Z_prime_plate3_well_day2,
+                                Z_prime_plate1_well_day3, 
+                                Z_prime_plate2_well_day3, 
+                                Z_prime_plate3_well_day3,
+                                Z_prime_plate_day1,
+                                Z_prime_plate_day2,
+                                Z_prime_plate_day3,
+                                Z_prime_day)
+
+names(Zfactor_mef) <- c("Comparison", 
+                        "10-0",
+                        "10-blank",
+                        "0-blank")
+#write.csv(Zfactor_mef, "Zfactor_mefenoxam.csv") 
+```
+
+Plot of mefenoxam dynamic range
+
+``` r
+library(ggplot2)
+p <- ggplot(qc.mefenoxam, aes(well, od600))
+p + geom_point(aes(colour = factor(trt)), size = 4) +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(from = 1, to = 96, by = 1)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  labs(list(x = "Wells of microtiter plate",  
+            y = expression(bold("OD"[600])))) +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_text(size = 18, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold"),
+        axis.title.y = element_text(size = 30, face = "bold"),
+        legend.text = element_text(size  = 20, face = "bold"),
+        legend.key = element_blank(),
+        legend.title = element_blank(),
+        strip.text = element_text(size=15, face = "bold"),
+        panel.margin=unit(0 , "lines"),
+        axis.ticks = element_blank()) +
+  facet_wrap(~ daynum*platenum, nrow = 1)
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-6-1.png)
+
+Plot of mefenoxam dynamic range broken up by day to day
+
+``` r
+p <- ggplot(qc.mefenoxam, aes(well, od600))
+p + geom_point(aes(colour = factor(trt)), size = 4) +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(from = 1, to = 96, by = 1)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  labs(list(x = "Wells of microtiter plate",  
+            y = expression(bold("OD"[600])))) +
+  theme(axis.text.x = element_text(size = 10, face = "bold"),
+        axis.text.y = element_text(size = 18, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold"),
+        axis.title.y = element_text(size = 30, face = "bold"),
+        legend.text = element_text(size  = 20, face = "bold"),
+        legend.key = element_blank(),
+        legend.title = element_blank(),
+        strip.text = element_text(size=18, face = "bold"))
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-7-1.png)
+
+ethaboxam z scores
+
+``` r
+#ethaboxam Z' factor scores day 1
+
+#well-to-well plate 1
+qc.ethaboxam_plate1 <- qc.ethaboxam_day1[qc.ethaboxam_day1$plate == 1,]
+meanPC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate1_well_day1 <- data.frame("ethaboxam_plate1_well_day1", PC_NC, PC_NTC, NC_NTC);
+names(Z_prime_plate1_well_day1) <- letters[1:4]
+
+#well-to-well plate 2
+qc.ethaboxam_plate2 <- qc.ethaboxam_day1[qc.ethaboxam_day1$plate == 2,]
+meanPC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate2_well_day1 <- data.frame("ethaboxam_plate2_well_day1", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate2_well_day1) <- letters[1:4]
+
+#well-to-well plate 3
+qc.ethaboxam_plate3 <- qc.ethaboxam_day1[qc.ethaboxam_day1$plate == 3,]
+meanPC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate3_well_day1 <- data.frame("ethaboxam_plate3_well_day1", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate3_well_day1) <- letters[1:4]
+
+#plate-to-plate day 1
+meanPC <- mean(qc.ethaboxam_day1$od600[qc.ethaboxam_day1$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_day1$od600[qc.ethaboxam_day1$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_day1$od600[qc.ethaboxam_day1$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_day1$od600[qc.ethaboxam_day1$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_day1$od600[qc.ethaboxam_day1$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_day1$od600[qc.ethaboxam_day1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate_day1 <- data.frame("ethaboxam_plate_day1", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate_day1) <- letters[1:4]
+
+#ethaboxam Z' factor scores day 2
+
+#well-to-well plate 1
+qc.ethaboxam_plate1 <- qc.ethaboxam_day2[qc.ethaboxam_day2$plate == 1,]
+meanPC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate1_well_day2 <- data.frame("ethaboxam_plate1_well_day2", PC_NC, PC_NTC, NC_NTC);
+names(Z_prime_plate1_well_day2) <- letters[1:4]
+
+#well-to-well plate 2
+qc.ethaboxam_plate2 <- qc.ethaboxam_day2[qc.ethaboxam_day2$plate == 2,]
+meanPC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate2_well_day2 <- data.frame("ethaboxam_plate2_well_day2", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate2_well_day2) <- letters[1:4]
+
+#well-to-well plate 3
+qc.ethaboxam_plate3 <- qc.ethaboxam_day2[qc.ethaboxam_day2$plate == 3,]
+meanPC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate3_well_day2 <- data.frame("ethaboxam_plate3_well_day2", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate3_well_day2) <- letters[1:4]
+
+#plate-to-plate day 2
+meanPC <- mean(qc.ethaboxam_day2$od600[qc.ethaboxam_day2$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_day2$od600[qc.ethaboxam_day2$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_day2$od600[qc.ethaboxam_day2$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_day2$od600[qc.ethaboxam_day2$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_day2$od600[qc.ethaboxam_day2$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_day2$od600[qc.ethaboxam_day2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate_day2 <- data.frame("ethaboxam_plate_day2", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate_day2) <- letters[1:4]
+
+#ethaboxam Z' factor scores day 3
+
+#well-to-well plate 1
+qc.ethaboxam_plate1 <- qc.ethaboxam_day3[qc.ethaboxam_day3$plate == 1,]
+meanPC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate1$od600[qc.ethaboxam_plate1$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate1_well_day3 <- data.frame("ethaboxam_plate1_well_day3", PC_NC, PC_NTC, NC_NTC);
+names(Z_prime_plate1_well_day3) <- letters[1:4]
+
+#well-to-well plate 2
+qc.ethaboxam_plate2 <- qc.ethaboxam_day3[qc.ethaboxam_day3$plate == 2,]
+meanPC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate2$od600[qc.ethaboxam_plate2$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate2_well_day3 <- data.frame("ethaboxam_plate2_well_day3", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate2_well_day3) <- letters[1:4]
+
+#well-to-well plate 3
+qc.ethaboxam_plate3 <- qc.ethaboxam_day3[qc.ethaboxam_day3$plate == 3,]
+meanPC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_plate3$od600[qc.ethaboxam_plate3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate3_well_day3 <- data.frame("ethaboxam_plate3_well_day3", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate3_well_day3) <- letters[1:4]
+
+#plate-to-plate day 2
+meanPC <- mean(qc.ethaboxam_day3$od600[qc.ethaboxam_day3$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam_day3$od600[qc.ethaboxam_day3$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam_day3$od600[qc.ethaboxam_day3$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam_day3$od600[qc.ethaboxam_day3$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam_day3$od600[qc.ethaboxam_day3$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam_day3$od600[qc.ethaboxam_day3$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_plate_day3 <- data.frame("ethaboxam_plate_day3", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_plate_day3) <- letters[1:4]
+
+#day-to-day 
+meanPC <- mean(qc.ethaboxam$od600[qc.ethaboxam$trt == "20ppm"])
+sdPC <- sd(qc.ethaboxam$od600[qc.ethaboxam$trt == "20ppm"])
+meanNC <- mean(qc.ethaboxam$od600[qc.ethaboxam$trt == "0ppm"])
+sdNC <- sd(qc.ethaboxam$od600[qc.ethaboxam$trt == "0ppm"])
+meanNTC <- mean(qc.ethaboxam$od600[qc.ethaboxam$trt == "blank"])
+sdNTC <- sd(qc.ethaboxam$od600[qc.ethaboxam$trt == "blank"])
+
+PC_NC <- Z(sdPC, sdNC, meanPC, meanNC) #inhibited growth compared to non-inhibited growth
+PC_NTC <- Z(sdPC, sdNTC, meanPC, meanNTC) #inhibited growth compared to blank control wells
+NC_NTC <- Z(sdNC, sdNTC, meanNC, meanNTC) #non-inhibited growth compared to blank control wells
+
+Z_prime_day <- data.frame("ethaboxam_day", PC_NC, PC_NTC, NC_NTC)
+names(Z_prime_day) <- letters[1:4]
+
+#all Z'factors in one table
+
+
+Zfactor_eth <- rbind.data.frame(Z_prime_plate1_well_day1, 
+                                Z_prime_plate2_well_day1, 
+                                Z_prime_plate3_well_day1,
+                                Z_prime_plate1_well_day2, 
+                                Z_prime_plate2_well_day2, 
+                                Z_prime_plate3_well_day2,
+                                Z_prime_plate1_well_day3, 
+                                Z_prime_plate2_well_day3, 
+                                Z_prime_plate3_well_day3,
+                                Z_prime_plate_day1,
+                                Z_prime_plate_day2,
+                                Z_prime_plate_day3,
+                                Z_prime_day)
+#write.csv(Zfactor_eth, "Zfactor_ethaboxam.csv") 
+
+names(Zfactor_eth) <- c("Comparison", 
+                        "10-0",
+                        "10-blank",
+                        "0-blank")
+```
+
+Plot of ethaboxam dynamic range
+
+``` r
+p <- ggplot(qc.ethaboxam, aes(well, od600))
+p + geom_point(aes(colour = factor(trt)), size = 4) +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(from = 1, to = 96, by = 1)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  labs(list(x = "Wells of microtiter plate",  
+            y = expression(bold("OD"[600])))) +
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_text(size = 18, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold"),
+        axis.title.y = element_text(size = 30, face = "bold"),
+        legend.text = element_text(size  = 20, face = "bold"),
+        legend.key = element_blank(),
+        legend.title = element_blank(),
+        strip.text = element_text(size=15, face = "bold"),
+        panel.margin=unit(0 , "lines"),
+        axis.ticks = element_blank()) +
+  facet_wrap(~ daynum*platenum, nrow = 1)
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-9-1.png)
+
+plot of ethaboxam dynamic range broken up by day to day
+
+``` r
+p <- ggplot(qc.ethaboxam, aes(well, od600))
+p + geom_point(aes(colour = factor(trt)), size = 4) +
+  theme_bw() +
+  scale_x_continuous(breaks = seq(from = 1, to = 96, by = 1)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 1, by = 0.2)) +
+  labs(list(x = "Wells of microtiter plate",  
+            y = expression(bold("OD"[600])))) +
+  theme(axis.text.x = element_text(size = 10, face = "bold"),
+        axis.text.y = element_text(size = 18, face = "bold"),
+        axis.title.x = element_text(size = 30, face = "bold"),
+        axis.title.y = element_text(size = 30, face = "bold"),
+        legend.text = element_text(size  = 20, face = "bold"),
+        legend.key = element_blank(),
+        legend.title = element_blank(),
+        strip.text = element_text(size=20, face = "bold"))
+```
+
+![](Zfactor_files/figure-markdown_github/unnamed-chunk-10-1.png)
