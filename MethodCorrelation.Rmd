@@ -20,7 +20,7 @@ Arguments:
 reg = the linear model 
 coefnum = 1 = intercept, 2 = beta ...
 val = value you would like to test, the default lm tests if value is significantly different from zero. 
-```{r Functions, include=FALSE}
+```{r Functions, include=TRUE}
 ttest <- function(reg, coefnum, val){
   co <- coef(summary(reg))
   tstat <- (co[coefnum,1]-val)/co[coefnum,2]
@@ -39,14 +39,14 @@ sapply(pkg, require, character.only = TRUE)
 ```
 
 ###Libraries
-```{r}
+```{r, message=FALSE, warning=FALSE}
 packages <- c("drc", "lme4", "lsmeans", "plyr", "plotrix", "knitr", "ggplot2", "lmtest", "lmerTest", "Rmisc", "gridExtra", "plotly", "webshot", "ggpmisc", "ggsci","scales")
 ipak(packages)
 ```
 
 
 ###Read Data
-```{r Reading in data, message=FALSE, warning=FALSE, include=FALSE}
+```{r Reading in data, message=FALSE, warning=FALSE, include=TRUE}
 cor <- data.frame(read.csv("correlation.csv", na.strings = "na"))
 cor <- data.frame(na.omit(cor)) #omits missing values
 ```

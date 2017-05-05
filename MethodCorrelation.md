@@ -1,119 +1,29 @@
 A function to do a t-test to determine if varias values in a linear model is significantly different than others. Arguments: reg = the linear model coefnum = 1 = intercept, 2 = beta ... val = value you would like to test, the default lm tests if value is significantly different from zero.
 
+``` r
+ttest <- function(reg, coefnum, val){
+  co <- coef(summary(reg))
+  tstat <- (co[coefnum,1]-val)/co[coefnum,2]
+  2 * pt(abs(tstat), reg$df.residual, lower.tail = FALSE)
+} 
+
+# ipak function: install and load multiple R packages.
+# check to see if packages are installed. Install them if they are not, then load them into the R session.
+# Source: https://gist.github.com/stevenworthington/3178163
+ipak <- function(pkg){
+new.pkg <- pkg[!(pkg %in% installed.packages()[,"Package"])]
+if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+sapply(pkg, require, character.only = TRUE)
+}
+```
+
 ### Libraries
 
 ``` r
 packages <- c("drc", "lme4", "lsmeans", "plyr", "plotrix", "knitr", "ggplot2", "lmtest", "lmerTest", "Rmisc", "gridExtra", "plotly", "webshot", "ggpmisc", "ggsci","scales")
 ipak(packages)
 ```
-
-    ## Loading required package: drc
-
-    ## Loading required package: MASS
-
-    ## 
-    ## 'drc' has been loaded.
-
-    ## Please cite R and 'drc' if used for a publication,
-
-    ## for references type 'citation()' and 'citation('drc')'.
-
-    ## 
-    ## Attaching package: 'drc'
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     gaussian, getInitial
-
-    ## Loading required package: lme4
-
-    ## Loading required package: Matrix
-
-    ## Loading required package: lsmeans
-
-    ## Loading required package: estimability
-
-    ## Loading required package: plyr
-
-    ## Loading required package: plotrix
-
-    ## Loading required package: knitr
-
-    ## Loading required package: ggplot2
-
-    ## Loading required package: lmtest
-
-    ## Loading required package: zoo
-
-    ## 
-    ## Attaching package: 'zoo'
-
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     as.Date, as.Date.numeric
-
-    ## Loading required package: lmerTest
-
-    ## 
-    ## Attaching package: 'lmerTest'
-
-    ## The following object is masked from 'package:lsmeans':
-    ## 
-    ##     lsmeans
-
-    ## The following object is masked from 'package:lme4':
-    ## 
-    ##     lmer
-
-    ## The following object is masked from 'package:stats':
-    ## 
-    ##     step
-
-    ## Loading required package: Rmisc
-
-    ## Loading required package: lattice
-
-    ## Loading required package: gridExtra
-
-    ## Loading required package: plotly
-
-    ## 
-    ## Attaching package: 'plotly'
-
-    ## The following object is masked from 'package:ggplot2':
-    ## 
-    ##     last_plot
-
-    ## The following objects are masked from 'package:plyr':
-    ## 
-    ##     arrange, mutate, rename, summarise
-
-    ## The following object is masked from 'package:MASS':
-    ## 
-    ##     select
-
-    ## The following object is masked from 'package:stats':
-    ## 
-    ##     filter
-
-    ## The following object is masked from 'package:graphics':
-    ## 
-    ##     layout
-
-    ## Loading required package: webshot
-
-    ## Loading required package: ggpmisc
-
-    ## Loading required package: ggsci
-
-    ## Loading required package: scales
-
-    ## 
-    ## Attaching package: 'scales'
-
-    ## The following object is masked from 'package:plotrix':
-    ## 
-    ##     rescale
 
     ##       drc      lme4   lsmeans      plyr   plotrix     knitr   ggplot2 
     ##      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE      TRUE 
@@ -123,6 +33,11 @@ ipak(packages)
     ##      TRUE      TRUE
 
 ### Read Data
+
+``` r
+cor <- data.frame(read.csv("correlation.csv", na.strings = "na"))
+cor <- data.frame(na.omit(cor)) #omits missing values
+```
 
 This function will run a linear model of the percent relative growth, as well as correlations in both pearson and spearman and will also plot it in ggplot, if desired.
 
