@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/57301862.svg)](https://zenodo.org/badge/latestdoi/57301862) 
+
 # Fungicide sensitivity of oomycete species associated with corn and soybean seedlings
 
 This project is an extension of a project to survey oomycetes associated with soybean seedlings in North America, and can be found here: [Rojas Survey](https://github.com/Chilverslab/Rojas_Survey_Phytopath_2016)
